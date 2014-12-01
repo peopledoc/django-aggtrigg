@@ -61,9 +61,9 @@ Check `django-aggtrigg` has been installed:
 
 .. code:: sh
 
-   python -c "import django_json_dbindex;print(django_aggtrigg.__version__)"
+   python -c "import django_aggtrigg;print(django_aggtrigg.__version__)"
 
-You should get `django_json_dbindex`'s version.
+You should get `django_aggtrigg`'s version.
 
 
 .. rubric:: References

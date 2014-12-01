@@ -3,14 +3,14 @@ Contributing
 ############
 
 This document provides guidelines for people who want to contribute to the
-`django-json-dbindex` project.
+`django-aggtrigg` project.
 
 
 **************
 Create tickets
 **************
 
-Please use `django-json-dbindex bugtracker`_ **before** starting some work:
+Please use `django-aggtrigg bugtracker`_ **before** starting some work:
 
 * check if the bug or feature request has already been filed. It may have been
   answered too!
@@ -42,12 +42,12 @@ Use topic branches
 Fork, clone
 ***********
 
-Clone `django-json-dbindex` repository (adapt to use your own fork):
+Clone `django-aggtrigg` repository (adapt to use your own fork):
 
 .. code:: sh
 
-   git clone git@github.com:novapost/django-json-dbindex.git
-   cd django-json-dbindex/
+   git clone git@github.com:novapost/django-aggtrigg.git
+   cd django-aggtrigg/
 
 
 *************
@@ -64,7 +64,7 @@ environment:
 * Build documentation: ``make documentation``. It builds `Sphinx`_
   documentation in `var/docs/html/index.html`.
 
-* Release `django-json-dbindex` project with `zest.releaser`_: ``make release``.
+* Release `django-aggtrigg` project with `zest.releaser`_: ``make release``.
 
 * Cleanup local repository: ``make clean``, ``make distclean`` and
   ``make maintainer-clean``.
@@ -76,7 +76,7 @@ See also ``make help``.
 
 .. target-notes::
 
-.. _`django-json-dbindex bugtracker`: https://github.com/novapost/django-json-dbindex/issues
+.. _`django-aggtrigg bugtracker`: https://github.com/novapost/django-aggtrigg/issues
 .. _`rebase`: http://git-scm.com/book/en/Git-Branching-Rebasing
 .. _`merge-based rebase`: http://tech.novapost.fr/psycho-rebasing-en.html
 .. _`pip`: https://pypi.python.org/pypi/pip/
