@@ -47,6 +47,7 @@ def execute_raw(sql, database='default'):
         logging.error('Cant execute %s' % (sql))
         return 1
 
+
 def lookup(sql, params=None, database='default'):
     """
     Execute a raw SQL command
@@ -64,6 +65,7 @@ def lookup(sql, params=None, database='default'):
         logging.error('Cant execute %s' % (sql))
         return False
 
+
 def mogrify(sql, params=None, database='default'):
     """Mogrify a command
 
@@ -72,6 +74,7 @@ def mogrify(sql, params=None, database='default'):
     """
     cursor = connections[database].cursor()
     return cursor.mogrify(sql, params)
+
 
 def drop_index(index, database='default'):
     """
@@ -115,6 +118,3 @@ def create_index(index, database='default'):
         res = execute_raw(index['cmd'], database)
         logging.info("%s created" % index['name'])
     return res
-
-def foo():
-    return 2
