@@ -1,0 +1,74 @@
+#######
+Install
+#######
+
+`django-aggtrigg` is open-source software, published under BSD license.
+See :doc:`/about/license` for details.
+
+If you want to install a development environment, you should go to
+:doc:`/contributing` documentation.
+
+
+*************
+Prerequisites
+*************
+
+* `Python`_ 2.7, 3.3 or 3.4. Other versions may work, but they are not part of
+  the test suite at the moment.
+
+
+************
+As a library
+************
+
+In most cases, you will use `django-aggtrigg` as a dependency of another project.
+In such a case, you should add ``django-aggtrigg`` in your main project's
+requirements. Typically in :file:`setup.py`:
+
+.. code:: python
+
+   from setuptools import setup
+
+   setup(
+       install_requires=[
+           'django-aggtrigg',
+           #...
+       ]
+       # ...
+   )
+
+Then when you install your main project with your favorite package manager
+(like `pip`_), `django-aggtrigg` will automatically be installed.
+
+
+**********
+Standalone
+**********
+
+You can install `django-aggtrigg` with your favorite Python package manager.
+As an example with `pip`_:
+
+.. code:: sh
+
+   pip install django-aggtrigg
+
+
+*****
+Check
+*****
+
+Check `django-aggtrigg` has been installed:
+
+.. code:: sh
+
+   python -c "import django_json_dbindex;print(django_aggtrigg.__version__)"
+
+You should get `django_json_dbindex`'s version.
+
+
+.. rubric:: References
+
+.. target-notes::
+
+.. _`Python`: https://www.python.org/
+.. _`pip`: https://pypi.python.org/pypi/pip/

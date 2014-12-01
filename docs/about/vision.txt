@@ -1,0 +1,8 @@
+######
+Vision
+######
+
+`django-json-dbindex` helps you integrate and use complex indexes
+within a Django project.
+
+

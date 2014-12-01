@@ -1,0 +1,6 @@
+CREATE OR REPLACE FUNCTION {{name}} RETURNS TRIGGER AS $BODY$
+BEGIN
+UPDATE {{table}} SET {{actions}} WHERE {{column}}=OLD.{{column}};
+RETURN NEW;
+END;
+$BODY$ LANGUAGE plpgsql;
