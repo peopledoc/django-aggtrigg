@@ -48,9 +48,7 @@ class Command(BaseCommand):
                     "--quiet",
                     dest="quiet",
                     action="store_true",
-                    default=False)
-        )
-
+                    default=False))
 
     def handle(self, *args, **options):
         """
@@ -61,7 +59,6 @@ class Command(BaseCommand):
 
         for trig in util.get_app_paths():
             self.create_trigger(trig, options)
-
 
     def create_trigger(self, trig, options):
         """
@@ -81,17 +78,16 @@ class Command(BaseCommand):
 
         if table and column and len(aggs) > 0:
             if not options['simulate']:
+                agg.create_objects()
                 if options['verbosity'] > 0:
-                    sys.stdout.write (comment % (table, column, aggs))
-                    sys.stdout.write ("-- Create table : %s\n" % (agg.table_name))                                        
-                res = agg.create_objects()
+                    sys.stdout.write(comment % (table, column, aggs))
+                    sys.stdout.write("Create table : %s\n" % (agg.table_name))
 
             #  do nothing
             else:
                 for sql in agg.sql_create_functions(table, column, aggs):
-                    print comment % (table, column, aggs)
-                    print sql
+                    sys.stdout.write(comment % (table, column, aggs))
+                    sys.stdout.wrtite(sql)
                 for sql in agg.sql_create_triggers(table, column):
-                    comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s"
-                    print sql
+                    sys.stdout.wrtite(sql)
                 print agg.sql_create_table(table, column, aggs)
