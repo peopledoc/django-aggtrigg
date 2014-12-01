@@ -16,10 +16,22 @@ Quick start
         'aggregate_trigger',
     )
 
-2. Import IntegerTriggerField in yoour models::
+2. Import fields in your models::
 
     from aggregate_trigger.models import IntegerTriggerField
+    from aggregate_trigger.models import FloatTriggerField
 
-Create indexes
---------------
+Manage triggers and related objects
+-----------------------------------
 
+To create the triggers just do::
+
+    python manage.py aggtrigg_create
+
+Dropping trigegrs is easy as doing::
+
+    python manage.py aggtrigg_drop
+
+To initialize the aggregeate table, you can fill it by hand or do::
+
+    python manage.py aggtrigg_initialize

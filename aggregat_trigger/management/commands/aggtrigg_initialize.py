@@ -42,7 +42,9 @@ class Command(BaseCommand):
         agg = util.AggTrigger(trig['table'], trig['field'], trig['aggs'])
         agg.verbose = int(options['verbosity'])
 
-        message = u"Are you sure you want to initialize \n %s approx %s tuples in source, maybe long : [Y/n] "
+        message = u" ".join([u"Are you sure you want to initialize\n",
+                             u"%s approx %s tuples in source,",
+                             u"maybe long : [Y/n] "])
 
         answer = raw_input(message % (agg.table_name, agg.get_nb_tuples()))
         if answer == "Y":
