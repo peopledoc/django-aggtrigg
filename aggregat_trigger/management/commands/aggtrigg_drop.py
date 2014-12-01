@@ -31,7 +31,7 @@ class Command(BaseCommand):
                     dest="simulate",
                     action="store_true",
                     help="juste print on stdout SQL commande, do nothing",
-                    default=False),        
+                    default=False),
         make_option("-t",
                     "--table",
                     dest="table",
@@ -48,15 +48,14 @@ class Command(BaseCommand):
                     "--quiet",
                     dest="quiet",
                     action="store_true",
-                    default=False)
-        )
+                    default=False))
 
     def handle(self, *args, **options):
         """Do the job
         """
         if options['quiet']:
             options['verbosity'] = 0
-            
+
         for trig in util.get_app_paths():
             self.drop_trigger(trig, options)
 
@@ -68,7 +67,6 @@ class Command(BaseCommand):
         agg = util.AggTrigger(table, column, aggs)
 
         comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s\n"
-        sys.stdout.write ("Warning, this will drop triggers and Table\n")
-        sys.stdout.write (comment % (agg.table_name, column, aggs))
+        sys.stdout.write("Warning, this will drop triggers and Table\n")
+        sys.stdout.write(comment % (agg.table_name, column, aggs))
         print agg.drop_objects()
-
