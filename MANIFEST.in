@@ -1,0 +1,9 @@
+recursive-include aggregate_trigger *
+global-exclude *.pyc
+include AUTHORS
+include CHANGELOG
+include CONTRIBUTING.rst
+include INSTALL
+include LICENSE
+include README.rst
+include VERSION
