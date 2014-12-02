@@ -21,8 +21,8 @@ Quick start
     from aggregate_trigger.models import IntegerTriggerField
     from aggregate_trigger.models import FloatTriggerField
 
-3. By default only the `count` agggregat will be create, to user
-another on configure your field as is::
+3. Configure your fields, by default only the `count` agggregat will
+be create, to user another on configure your field as is::
 
     class Apple(models.Model):
         indice = IntegerTriggerField(default=0)
@@ -31,7 +31,11 @@ another on configure your field as is::
         mark = FloatTriggerField(default=0)
         mark.aggregate_trigger=['min']
 
-Two aaggregat will be compute for **indice** field, only one will be
+4. Use the new manager on you Model
+
+    objects = AggTriggManager()
+
+Two aggregat will be compute for **indice** field, only one will be
 done on **mark**
 
 
@@ -77,7 +81,7 @@ Instead of doing a COUNT as the traditionnal way::
 
 you can do:
 
-    Apple.objects.raw("SELECT agg_count FROM foo_apple__indice_agg WHERE indice=%s", [42])
+    Apple.objects.optimized_count(indice=42)
 
 This is may be less easy, but so much more efficient when you
 manipulate billions or tuples in your relations.
