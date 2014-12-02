@@ -68,6 +68,7 @@ def command_check():
         print fpath
 
 
+
 def get_app_paths():
     """Return all paths defined in settings
     """
@@ -90,7 +91,7 @@ class AggTrigger(object):
 
     database = 'default'
 
-    def __init__(self, table, column, aggregats, database='default'):
+    def __init__(self, table, column, aggregats=['count'], database='default'):
         self.verbose = 0
         self.table = table
         self.column = column

@@ -29,7 +29,7 @@ another on configure your field as is::
         indice.aggregate_trigger=['count','min']
 
         mark = FloatTriggerField(default=0)
-        indice.aggregate_trigger=['min']
+        mark.aggregate_trigger=['min']
 
 Two aaggregat will be compute for **indice** field, only one will be
 done on **mark**
