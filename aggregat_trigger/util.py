@@ -46,6 +46,7 @@ def function_name(table, column, action):
 def trigger_name(table, column, action):
     return "{0}_{1}_{2}_trigger".format(table, column, action)
 
+
 def triggers_name(table, column):
     tgs = []
     for action in ACTIONS:
@@ -90,6 +91,13 @@ class AggTrigger(object):
     def triggers_name(self):
         return triggers_name(self.table, self.column)
 
+    @property
+    def functions_name(self):
+        fns = []
+        for action in ACTIONS:
+            fns.append(function_name(self.table, self.column, action))
+        return fns
+                
     def create_objects(self):
         """Create all needed objects
         table (string)
@@ -327,7 +335,7 @@ class AggTrigger(object):
         return res
 
     def triggers_on_table_are_present(self):
-        """Check if the agg table is present
+        """Check if the triggers are present in database
         """
         res = []
         qry = self.backend.sql_trigger_on_table_exists()
@@ -336,4 +344,16 @@ class AggTrigger(object):
             res.append((trig, pgcommands.lookup(qry,
                                                params=params,
                                                database=self.database)))
+        return res
+
+    def functions_are_present(self):
+        """Check if the functions are present in database
+        """
+        res = []
+        qry = self.backend.sql_trigger_function_on_table_exists()
+        for func in self.functions_name:
+            params = (func[:-2], self.table)
+            res.append((func, pgcommands.lookup(qry,
+                                                params=params,
+                                                database=self.database)))
         return res

@@ -140,3 +140,10 @@ class utilTests(unittest.TestCase):
         agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         res = agg.sql_init()
         self.assertTrue(isinstance(res, unicode) or isinstance(res, str))
+
+    def test_agg_functions_name(self):
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
+        res = agg.functions_name
+        self.assertTrue(res, ['book_nbpage_insert()',
+                              'book_nbpage_update()',
+                              'book_nbpage_delete()'])

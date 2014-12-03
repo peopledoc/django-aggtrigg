@@ -205,3 +205,14 @@ class TriggerPostgreSQL(object):
                         "AND pg_trigger.tgname=%s",
                         "AND pg_class.relname=%s"])
         return qry
+
+    def sql_trigger_function_on_table_exists(self):
+        """Return the query to find the typename of a column
+        """        
+        qry = " ".join(["SELECT count(pg_trigger.tgname)",
+                        "FROM pg_trigger,pg_class,pg_proc",
+                        "WHERE pg_trigger.tgrelid=pg_class.oid",
+                        "AND pg_trigger.tgfoid=pg_proc.oid",
+                        "AND pg_proc.proname=%s",                        
+                        "AND pg_class.relname=%s"])
+        return qry

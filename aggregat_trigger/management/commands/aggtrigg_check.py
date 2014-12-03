@@ -77,4 +77,10 @@ class Command(BaseCommand):
                 if trig[1]:
                     sys.stdout.write("OK trigger: %s is present\n" % (trig[0]))
                 else:
-                    sys.stdout.write("KO trigger: %s is absent\n" % (trig[1]))                
+                    sys.stdout.write("KO trigger: %s is absent\n" % (trig[0]))
+
+            for func in agg.functions_are_present():
+                if func[1]:
+                    sys.stdout.write("OK function: %s is present\n" % (func[0]))
+                else:
+                    sys.stdout.write("KO function: %s is absent\n" % (func[0]))
