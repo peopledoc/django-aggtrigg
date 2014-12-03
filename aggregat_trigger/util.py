@@ -46,6 +46,12 @@ def function_name(table, column, action):
 def trigger_name(table, column, action):
     return "{0}_{1}_{2}_trigger".format(table, column, action)
 
+def triggers_name(table, column):
+    tgs = []
+    for action in ACTIONS:
+        tgs.append("{0}_{1}_{2}_trigger".format(table, column, action))
+    return tgs
+
 
 def table_name(table, column):
     """Compute the table name
@@ -79,6 +85,10 @@ class AggTrigger(object):
     @property
     def table_name(self):
         return table_name(self.table, self.column)
+
+    @property
+    def triggers_name(self):
+        return triggers_name(self.table, self.column)
 
     def create_objects(self):
         """Create all needed objects
@@ -305,3 +315,25 @@ class AggTrigger(object):
         fname (string) : min or max
         """
         return self.backend.agg_fname(agg, fname)
+
+    def agg_table_ispresent(self):
+        """Check if the agg table is present
+        """
+        qry = self.backend.sql_table_exists()
+        params = (self.table_name,)
+        res = pgcommands.lookup(qry,
+                                params=params,
+                                database=self.database)
+        return res
+
+    def triggers_on_table_are_present(self):
+        """Check if the agg table is present
+        """
+        res = []
+        qry = self.backend.sql_trigger_on_table_exists()
+        for trig in self.triggers_name:
+            params = (trig, self.table)
+            res.append((trig, pgcommands.lookup(qry,
+                                               params=params,
+                                               database=self.database)))
+        return res
