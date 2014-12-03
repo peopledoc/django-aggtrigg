@@ -24,21 +24,20 @@ class utilTests(unittest.TestCase):
 
     def test_equal(self):
         res = tool.parse_kwarg("foo")
-        self.assertEqual(res, ('foo', 'foo='))
+        self.assertEqual(res, (1, 'foo', 'foo='))
 
     def test_greater_than(self):
         res = tool.parse_kwarg("foo__gt")
-        self.assertEqual(res, ('foo', 'foo >'))
+        self.assertEqual(res, (2, 'foo', 'foo >'))
 
     def test_greater_or_equal_than(self):
         res = tool.parse_kwarg("foo__gte")
-        self.assertEqual(res, ('foo', 'foo >='))
+        self.assertEqual(res, (2, 'foo', 'foo >='))
 
     def test_less_than(self):
         res = tool.parse_kwarg("foo__lt")
-        self.assertEqual(res, ('foo', 'foo <'))
+        self.assertEqual(res, (2, 'foo', 'foo <'))
 
     def test_less_or_equal_than(self):
         res = tool.parse_kwarg("foo__lte")
-        self.assertEqual(res, ('foo', 'foo <='))
-
+        self.assertEqual(res, (2, 'foo', 'foo <='))

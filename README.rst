@@ -57,6 +57,20 @@ To initialize the aggregeate table, you can fill it by hand or do::
 Howto use the new aggregat
 --------------------------
 
+Instead of doing a COUNT as the traditionnal way::
+
+    Apple.objects.filter(indice=42).count()
+
+you will do::
+
+    Apple.objects.optimized_count(indice=42)
+
+This is may be less easy, but so much more efficient when you
+manipulate billions or tuples in your relations.
+
+What inside
+-----------
+
 The class **apple** was create in the app called **foo** so the
 default name of the table that contains data will be **foo_apple**, we
 use the tablename from the Model so if it's changed in **Meta** will
@@ -74,14 +88,3 @@ as **foo_apple**, it will contain the aggregat::
      agg_min   | integer | 
     Indexes:
         "foo_apple__indice_agg_indice_idx" btree (indice)
-
-Instead of doing a COUNT as the traditionnal way::
-
-    Apple.objects.filter(indice=42).count()
-
-you can do:
-
-    Apple.objects.optimized_count(indice=42)
-
-This is may be less easy, but so much more efficient when you
-manipulate billions or tuples in your relations.

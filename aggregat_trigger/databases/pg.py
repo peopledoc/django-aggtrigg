@@ -173,3 +173,16 @@ class TriggerPostgreSQL(object):
         """
         qry = """SELECT reltuples FROM pg_class WHERE relname=%s"""
         return qry
+
+    def agg_fname(self, agg, fname):
+
+        AGGS = {'count': 'SUM',
+                'max': 'GREATEST',
+                'min': 'LEAST'}
+
+        try:
+            res = "%s(%s)" % (AGGS[agg], fname)
+        except KeyError:
+            res = fname
+            
+        return res
