@@ -21,17 +21,19 @@ import util
 import pgcommands
 from mock import MagicMock
 
+PGBACKEND = 'django.db.backends.postgresql_psycopg2'
+
 
 class utilTests(unittest.TestCase):
 
     def setUp(self):
-        self.agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        self.agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
 
     def test_init(self):
         self.assertEqual('default', self.agg.database)
 
     def test_agg_table_name(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         self.assertTrue(agg.table_name, 'foota_foocol_agg')
 
     def test_function_name(self):
@@ -47,31 +49,31 @@ class utilTests(unittest.TestCase):
         self.assertEqual("CREATE", res[:6])
 
     def test_sql_create_triggers(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         res = agg.sql_create_triggers()
         self.assertEqual(len(res), 3)
         self.assertTrue(isinstance(res, list))
 
     def test_sql_create_function(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         res = agg.sql_create_function('book', 'nbpage', ['count'], 'insert')
         self.assertTrue(isinstance(res, unicode))
         self.assertTrue(len(res) > 10)
 
     def test_sql_create_functions(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         res = agg.sql_create_functions()
         self.assertTrue(isinstance(res, list))
         self.assertEqual(len(res), 3)
 
     def test_sql_drop_functions(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         res = agg.sql_drop_functions('book', 'bar')
         self.assertTrue(isinstance(res, list))
         self.assertEqual(len(res), 3)
 
     def test_sql_drop_triggers(self):
-        agg = util.AggTrigger('foota', 'foocol', ['agg'])
+        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
         res = agg.sql_drop_triggers('book')
         self.assertTrue(isinstance(res, list))
         self.assertEqual(len(res), 3)
@@ -79,7 +81,7 @@ class utilTests(unittest.TestCase):
     def test_sql_create_table(self):
         """Test with only one aggregat
         """
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         res = agg.sql_create_table()
         self.assertTrue(isinstance(res, unicode))
         self.assertTrue(len(res) > 3)
@@ -87,7 +89,7 @@ class utilTests(unittest.TestCase):
     def test_sql_create_table_twoagg(self):
         """Test with two aggregats
         """
-        agg = util.AggTrigger('book', 'nbpage', ['count', 'min'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count', 'min'])
         res = agg.sql_create_table()
         self.assertTrue(isinstance(res, unicode))
         self.assertTrue(len(res) > 3)
@@ -105,36 +107,36 @@ class utilTests(unittest.TestCase):
         self.assertTrue(isinstance(res, str))
 
     def test_agg_create_table(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         pgcommands.execute_raw = MagicMock(return_value=0)
         res = agg.create_table()
         self.assertEqual(res, 0)
 
     def test_agg_create_triggers(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         pgcommands.execute_raw = MagicMock(return_value=0)
         res = agg.create_triggers()
         self.assertEqual(res, 0)
 
     def test_agg_create_functions(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         pgcommands.execute_raw = MagicMock(return_value=0)
         res = agg.create_functions()
         self.assertEqual(res, 0)
 
     def test_agg_drop_objects(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         pgcommands.execute_raw = MagicMock(return_value=0)
         res = agg.drop_objects()
         self.assertEqual(res, 0)
 
     def test_agg_create_objects(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         pgcommands.execute_raw = MagicMock(return_value=0)
         res = agg.create_objects()
         self.assertEqual(res, 0)
 
     def test_agg_sql_init(self):
-        agg = util.AggTrigger('book', 'nbpage', ['count'])
+        agg = util.AggTrigger(PGBACKEND, 'book', 'nbpage', ['count'])
         res = agg.sql_init()
         self.assertTrue(isinstance(res, unicode) or isinstance(res, str))

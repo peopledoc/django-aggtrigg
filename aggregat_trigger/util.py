@@ -16,9 +16,7 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
-from django.db.models import get_models
 import pgcommands
-from django.conf import settings
 import sys
 
 
@@ -60,38 +58,11 @@ def table_name(table, column):
     return "{0}__{1}_agg".format(table, column)
 
 
-def command_check():
-    """
-    Check indexes
-    """
-    for fpath in get_app_paths():
-        print fpath
-
-
-
-def get_app_paths():
-    """Return all paths defined in settings
-    """
-    trigg = []
-    classes = ["<class 'foo.aggtrigg.models.IntegerTriggerField'>",
-               "<class 'foo.aggtrigg.models.FloatTriggerField'>"]
-
-    for model in get_models():
-        for field in model._meta.fields:
-            if str(field.__class__) in classes:
-                trigg.append({"model": model,
-                              "table": model._meta.db_table,
-                              "field": field.name,
-                              "aggs": field.aggregate_trigger})
-
-    return trigg
-
-
 class AggTrigger(object):
+    """Manage database triggers
+    """
 
-    database = 'default'
-
-    def __init__(self, table, column, aggregats=['count'], database='default'):
+    def __init__(self, engine, table, column, aggregats=['count'], database='default'):
         self.verbose = 0
         self.table = table
         self.column = column
@@ -99,14 +70,11 @@ class AggTrigger(object):
         self.database = database
 
         # use the right backend
-        if database in settings.DATABASES:
-            if settings.DATABASES[database]['ENGINE'] == PGBACKEND:
-                from databases.pg import TriggerPostgreSQL
-                self.backend = TriggerPostgreSQL()
-            else:
-                raise DatabaseNotSupported()
+        if engine == PGBACKEND:
+            from databases.pg import TriggerPostgreSQL
+            self.backend = TriggerPostgreSQL()
         else:
-            raise DatabaseUnknown()
+            raise DatabaseNotSupported()
 
     @property
     def table_name(self):
@@ -330,3 +298,10 @@ class AggTrigger(object):
         """Return SQL statement build by the backend
         """
         return self.backend.sql_drop_table(name)
+
+    def agg_function(self, fname, agg):
+        """Return the aggregate name
+
+        fname (string) : min or max
+        """
+        return self.backend.agg_fname(agg, fname)

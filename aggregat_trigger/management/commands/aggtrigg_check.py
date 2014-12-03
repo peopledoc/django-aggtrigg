@@ -40,35 +40,30 @@ class Command(BaseCommand):
                     type="string",
                     help="table name",
                     default=None),
-        make_option("-c",
-                    "--column",
-                    dest="column",
-                    type="string",
-                    help="column name",
-                    default=None),
         make_option("-d",
                     "--database",
                     dest="database",
                     type="string",
                     help="table name",
                     default="default"),
-        make_option("-q",
-                    "--quiet",
-                    dest="quiet",
-                    action="store_true",
-                    default=False))
+        make_option("-c",
+                    "--column",
+                    dest="column",
+                    type="string",
+                    help="column name",
+                    default=None))
+
 
     def handle(self, *args, **options):
         """
         Handle action
         """
-        if options['quiet']:
-            options['verbosity'] = 0
+        trigs = djutil.get_agg_fields()
+        sys.stdout.write("found %d triggers\n" % (len(trigs)))
+        for trig in trigs:
+            self.check_trigger(trig, options)
 
-        for trig in djutil.get_agg_fields():
-            self.create_trigger(trig, options)
-
-    def create_trigger(self, trig, options):
+    def check_trigger(self, trig, options):
         """
         {'table': u'apple_apple',
          'model': <class 'foo.apple.models.Apple'>,
@@ -84,20 +79,7 @@ class Command(BaseCommand):
         agg = util.AggTrigger(engine, table, column, aggs)
         agg.verbose = int(options['verbosity'])
 
-        comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s\n"
+        comment = "--\nmodel: %s\ntable: %s, column: %s, aggregats: %s\n"
 
         if table and column and len(aggs) > 0:
-            if not options['simulate']:
-                agg.create_objects()
-                if options['verbosity'] > 0:
-                    sys.stdout.write(comment % (table, column, aggs))
-                    sys.stdout.write("Create table : %s\n" % (agg.table_name))
-
-            #  do nothing
-            else:
-                for sql in agg.sql_create_functions(table, column, aggs):
-                    sys.stdout.write(comment % (table, column, aggs))
-                    sys.stdout.write(sql)
-                for sql in agg.sql_create_triggers(table, column):
-                    sys.stdout.write(sql)
-                print agg.sql_create_table(table, column, aggs)
+            sys.stdout.write(comment % (trig['model'], table, column, aggs))

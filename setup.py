@@ -40,9 +40,11 @@ REQUIREMENTS = [
     'Django<1.7',
     'setuptools',
     'psycopg2',
+    'jinja2'
 ]
 ENTRY_POINTS = {}
-TEST_REQUIREMENTS = []
+TEST_REQUIREMENTS = [
+    'mock']
 CMDCLASS = {}
 SETUP_REQUIREMENTS = [
     'setuptools'

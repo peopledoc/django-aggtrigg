@@ -18,18 +18,34 @@
 #   without specific prior written permission.
 #
 import sys
+from optparse import make_option
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from ... import util
+import djutil
 
 
 class Command(BaseCommand):
     help = 'Import datas'
+    option_list = BaseCommand.option_list + (
+        make_option("-d",
+                    "--database",
+                    dest="database",
+                    type="string",
+                    help="table name",
+                    default="default"),
+        make_option("-q",
+                    "--quiet",
+                    dest="quiet",
+                    action="store_true",
+                    default=False))
+
 
     def handle(self, *args, **options):
         """
         Read the table book without TextField
         """
-        for trig in util.get_app_paths():
+        for trig in djutil.get_agg_fields():
             self.init_agg(trig, options)
 
     def init_agg(self, trig, options):
@@ -39,16 +55,23 @@ class Command(BaseCommand):
          'aggs': ['max'],
          'field': 'indice'}
         """
-        agg = util.AggTrigger(trig['table'], trig['field'], trig['aggs'])
+        engine = settings.DATABASES[options['database']]['ENGINE']
+
+        agg = util.AggTrigger(engine,
+                              trig['table'],
+                              trig['field'],
+                              trig['aggs'])
+        
         agg.verbose = int(options['verbosity'])
 
-        message = u" ".join([u"Are you sure you want to initialize\n",
-                             u"%s approx %s tuples in source,",
-                             u"maybe long : [Y/n] "])
+        message = u" ".join([u"Are you sure you want to initialize %s ?\n",
+                             u"%s contains %s tuples approximatively,",
+                             u"maybe long : [y/N] (please type yes to do)\n"])
 
-        answer = raw_input(message % (agg.table_name, agg.get_nb_tuples()))
-        if answer == "Y":
-            sys.stdout.write("Initialize %s" % (agg.table_name))
+        answer = raw_input(message % (agg.table_name, trig['table'], agg.get_nb_tuples()))
+        if answer == "yes":
+            sys.stdout.write(" Initialize %s ...\n" % (agg.table_name))
             agg.initialize()
+            sys.stdout.write(" done, %s is initialized\n" % (agg.table_name))
         else:
             return

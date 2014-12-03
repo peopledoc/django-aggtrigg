@@ -20,7 +20,9 @@
 import sys
 from optparse import make_option
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from ... import util
+import djutil
 
 
 class Command(BaseCommand):
@@ -44,6 +46,12 @@ class Command(BaseCommand):
                     type="string",
                     help="column name",
                     default=None),
+        make_option("-d",
+                    "--database",
+                    dest="database",
+                    type="string",
+                    help="table name",
+                    default="default"),
         make_option("-q",
                     "--quiet",
                     dest="quiet",
@@ -56,7 +64,7 @@ class Command(BaseCommand):
         if options['quiet']:
             options['verbosity'] = 0
 
-        for trig in util.get_app_paths():
+        for trig in djutil.get_agg_fields():
             self.drop_trigger(trig, options)
 
     def drop_trigger(self, trig, options):
@@ -64,7 +72,9 @@ class Command(BaseCommand):
         column = trig['field']
         table = trig['table']
 
-        agg = util.AggTrigger(table, column, aggs)
+        engine = settings.DATABASES[options['database']]['ENGINE']
+
+        agg = util.AggTrigger(engine, table, column, aggs)
 
         comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s\n"
         sys.stdout.write("Warning, this will drop triggers and Table\n")
