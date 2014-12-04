@@ -30,9 +30,11 @@ Use topic branches
 
 * Work in branches.
 
-* Prefix your branch with the ticket ID corresponding to the issue. As an
-  example, if you are working on ticket #23 which is about contribute
-  documentation, name your branch like ``23-contribute-doc``.
+* Please never push in ``master`` directly.
+
+* Prefix your branch with one the following keyword ``feature/`` when
+  adding a new feature and ``fix/`` when working on a fix.
+  You can also add the ticket ID corresponding to the issue to be explicit.
 
 * If you work in a development branch and want to refresh it with changes from
   master, please `rebase`_ or `merge-based rebase`_, i.e. do not merge master.
