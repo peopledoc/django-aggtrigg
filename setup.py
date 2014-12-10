@@ -47,8 +47,6 @@ REQUIREMENTS = [
     'jinja2'
 ]
 ENTRY_POINTS = {}
-TEST_REQUIREMENTS = [
-    'mock']
 CMDCLASS = {}
 SETUP_REQUIREMENTS = [
     'setuptools'
@@ -72,7 +70,6 @@ class Tox(TestCommand):
         sys.exit(errno)
 
 
-TEST_REQUIREMENTS.append('tox')
 CMDCLASS['test'] = Tox
 
 
@@ -93,7 +90,6 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         zip_safe=False,
         install_requires=REQUIREMENTS,
         entry_points=ENTRY_POINTS,
-        tests_require=TEST_REQUIREMENTS,
         cmdclass=CMDCLASS,
         setup_requires=SETUP_REQUIREMENTS
     )
