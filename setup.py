@@ -30,12 +30,16 @@ CLASSIFIERS = [
 KEYWORDS = [
     'aggregat',
     'trigger',
+    'count',
+    'min',
+    'max'
     'database',
     'index',
     'postgresql',
     'django',
 ]
-PACKAGES = ['aggregat_trigger']
+PACKAGES = ['django_aggtrigg']
+
 REQUIREMENTS = [
     'Django<1.7',
     'setuptools',

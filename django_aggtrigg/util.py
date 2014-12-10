@@ -21,7 +21,6 @@ import sys
 
 
 ACTIONS = ['insert', 'update', 'delete']
-
 FILENAME_CREATE = 'dbindex_create.json'
 FILENAME_DROP = 'dbindex_drop.json'
 PGBACKEND = 'django.db.backends.postgresql_psycopg2'
@@ -62,7 +61,9 @@ class AggTrigger(object):
     """Manage database triggers
     """
 
-    def __init__(self, engine, table, column, aggregats=['count'], database='default'):
+    def __init__(self, engine, table, column,
+                 aggregats=['count'],
+                 database='default'):
         self.verbose = 0
         self.table = table
         self.column = column

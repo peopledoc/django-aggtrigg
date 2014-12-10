@@ -116,8 +116,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'aggregat_trigger',
-    'django_aggregat_trigger_demo.dummy',
+    'django_aggtrigg',
+    'django_aggtrigg_demo.dummy',
 )
 
 # A sample logging configuration. The only tangible logging

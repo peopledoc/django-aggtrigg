@@ -184,5 +184,5 @@ class TriggerPostgreSQL(object):
             res = "%s(%s)" % (AGGS[agg], fname)
         except KeyError:
             res = fname
-            
+
         return res
