@@ -40,7 +40,6 @@ class Command(BaseCommand):
                     action="store_true",
                     default=False))
 
-
     def handle(self, *args, **options):
         """
         Read the table book without TextField
@@ -61,14 +60,16 @@ class Command(BaseCommand):
                               trig['table'],
                               trig['field'],
                               trig['aggs'])
-        
+
         agg.verbose = int(options['verbosity'])
 
         message = u" ".join([u"Are you sure you want to initialize %s ?\n",
                              u"%s contains %s tuples approximatively,",
                              u"maybe long : [y/N] (please type yes to do)\n"])
 
-        answer = raw_input(message % (agg.table_name, trig['table'], agg.get_nb_tuples()))
+        answer = raw_input(message % (agg.table_name,
+                                      trig['table'],
+                                      agg.get_nb_tuples()))
         if answer == "yes":
             sys.stdout.write(" Initialize %s ...\n" % (agg.table_name))
             agg.initialize()

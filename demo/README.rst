@@ -21,4 +21,4 @@ details about development environment setup.
 .. target-notes::
 
 .. _`demo folder in project's repository`:
-   https://github.com/novapost/django-json-dbindex/tree/master/demo/
+   https://github.com/novapost/django-aggtrigg/tree/master/demo/

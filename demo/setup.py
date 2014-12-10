@@ -23,16 +23,15 @@ CLASSIFIERS = ['Development Status :: 4 - Beta',
                'Programming Language :: Python :: 3.4',
                'Framework :: Django']
 KEYWORDS = []
-PACKAGES = ['django_aggregat_trigger_demo']
+PACKAGES = ['django_aggtrigg_demo']
 REQUIREMENTS = [
     'django-aggtrigg',
     'django-nose',
     'setuptools',
-
 ]
 ENTRY_POINTS = {
     'console_scripts': [
-        'django-aggtrigg-demo = django_aggregat_trigger_demo.manage:main',
+        'django-aggtrigg-demo = django_aggtrigg_demo.manage:main',
     ]
 }
 

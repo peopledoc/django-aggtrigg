@@ -21,17 +21,19 @@ from django.db.models import get_models
 CLASSES = ["aggregat_trigger.models.IntegerTriggerField",
            "aggregat_trigger.models.FloatTriggerField"]
 
+
 def is_trigg_field(fieldclass):
     """Check if the field is a triggered field
 
     <class 'foo.aggregat_trigger.models.IntegerTriggerField'>
-    <class 'foo.aggregat_trigger.models.FloatTriggerField'>    
+    <class 'foo.aggregat_trigger.models.FloatTriggerField'>
     """
     ift = False
     fdc = fieldclass.split("'")
     for fclass in CLASSES:
         ift = ift or fdc[1].endswith(fclass)
     return ift
+
 
 def get_agg_fields():
     """Return all special field defined

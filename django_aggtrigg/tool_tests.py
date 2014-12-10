@@ -20,7 +20,7 @@ import unittest
 import tool
 
 
-class utilTests(unittest.TestCase):
+class toolTests(unittest.TestCase):
 
     def test_equal(self):
         res = tool.parse_kwarg("foo")

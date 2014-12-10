@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""django-json-dbindex documentation build configuration file.
+"""django-aggtrigg documentation build configuration file.
 
 Created by diecutter on .
 
@@ -45,7 +45,7 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'django-json-dbindex'
+project = u'django-aggtrigg'
 project_slug = re.sub(r'([\W_.-]+)', u'-', project)
 copyright = u'2014 - Rodolphe Quiédeville'
 author = u'Rodolphe Quiédeville'

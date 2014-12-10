@@ -1,6 +1,6 @@
-===================
+===============
 django-aggtrigg
-===================
+===============
 
 Describe your database index in json files into your apps
 
@@ -9,17 +9,17 @@ Detailed documentation is in the "docs" directory.
 Quick start
 -----------
 
-1. Add "aggregate_trigger" to your INSTALLED_APPS setting like this::
+1. Add "django_aggtrigg" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = (
         ...
-        'aggregate_trigger',
+        'django_aggtrigg',
     )
 
 2. Import fields in your models::
 
-    from aggregate_trigger.models import IntegerTriggerField
-    from aggregate_trigger.models import FloatTriggerField
+    from django_aggtrigg.models import IntegerTriggerField
+    from django_aggtrigg.models import FloatTriggerField
 
 3. Configure your fields, by default only the `count` agggregat will
 be create, to user another on configure your field as is::

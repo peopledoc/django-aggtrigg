@@ -53,7 +53,6 @@ class Command(BaseCommand):
                     help="column name",
                     default=None))
 
-
     def handle(self, *args, **options):
         """
         Handle action
