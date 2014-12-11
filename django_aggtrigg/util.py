@@ -21,8 +21,6 @@ import sys
 
 
 ACTIONS = ['insert', 'update', 'delete']
-FILENAME_CREATE = 'dbindex_create.json'
-FILENAME_DROP = 'dbindex_drop.json'
 PGBACKEND = 'django.db.backends.postgresql_psycopg2'
 
 
@@ -98,9 +96,7 @@ class AggTrigger(object):
         column (string)
         """
         res = self.drop_triggers(self.table)
-
         res = res + self.drop_functions(self.table, self.column)
-
         res = res + self.drop_table(self.table_name)
 
         return res

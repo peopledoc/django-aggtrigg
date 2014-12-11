@@ -38,14 +38,10 @@ def execute_raw(sql, database='default'):
     sql (string) : SQL command
     database (string): the database name configured in settings
     """
-    try:
-        cursor = connections[database].cursor()
-        cursor.execute(sql)
-        cursor.close()
-        return 0
-    except:
-        logging.error('Cant execute %s' % (sql))
-        return 1
+    cursor = connections[database].cursor()
+    cursor.execute(sql)
+    cursor.close()
+    return 0
 
 
 def lookup(sql, params=None, database='default'):
