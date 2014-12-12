@@ -45,7 +45,6 @@ class AggTriggManager(models.Manager):
             raise TooManyKwargs()
         # do not care about more than one kwarg
         (key, value) = kwargs.items()[0]
-        print "%s = %s" % (key, value)
         (nbe, column, qfilter) = tool.parse_kwarg(key)
 
         agg = 'agg_count'
@@ -62,9 +61,7 @@ class AggTriggManager(models.Manager):
         qry = """SELECT {} FROM {} WHERE {} %s"""
         tbname = util.table_name(self.model._meta.db_table, column)
         cursor.execute(qry.format(agf, tbname, qfilter), [value])
-        print cursor.query
         row = cursor.fetchone()
-
         return row[0]
 
 
