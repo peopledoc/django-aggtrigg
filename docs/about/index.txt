@@ -1,8 +1,8 @@
 #####################
-About django-docusign
+About django-aggtrigg
 #####################
 
-This section is about the `django-docusign` project itself.
+This section is about the `django-aggtrig` project itself.
 
 .. toctree::
 
