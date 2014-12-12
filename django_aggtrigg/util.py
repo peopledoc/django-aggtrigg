@@ -16,12 +16,14 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
-import pgcommands
+import dbcommands
 import sys
 
 
 ACTIONS = ['insert', 'update', 'delete']
-PGBACKEND = 'django.db.backends.postgresql_psycopg2'
+
+SQLITE_BACKEND = 'django.db.backends.sqlite3'
+PG_BACKEND = 'django.db.backends.postgresql_psycopg2'
 
 
 class DatabaseNotSupported(Exception):
@@ -42,6 +44,13 @@ def function_name(table, column, action):
 
 def trigger_name(table, column, action):
     return "{0}_{1}_{2}_trigger".format(table, column, action)
+
+
+def triggers_name(table, column):
+    tgs = []
+    for action in ACTIONS:
+        tgs.append("{0}_{1}_{2}_trigger".format(table, column, action))
+    return tgs
 
 
 def table_name(table, column):
@@ -69,7 +78,7 @@ class AggTrigger(object):
         self.database = database
 
         # use the right backend
-        if engine == PGBACKEND:
+        if engine == PG_BACKEND:
             from databases.pg import TriggerPostgreSQL
             self.backend = TriggerPostgreSQL()
         else:
@@ -78,6 +87,17 @@ class AggTrigger(object):
     @property
     def table_name(self):
         return table_name(self.table, self.column)
+
+    @property
+    def triggers_name(self):
+        return triggers_name(self.table, self.column)
+
+    @property
+    def functions_name(self):
+        fns = []
+        for action in ACTIONS:
+            fns.append(function_name(self.table, self.column, action))
+        return fns
 
     def create_objects(self):
         """Create all needed objects
@@ -90,41 +110,48 @@ class AggTrigger(object):
         res = res + self.create_triggers()
         return res
 
-    def drop_objects(self):
-        """Drop all relations from database
-        table (string)
-        column (string)
-        """
-        res = self.drop_triggers(self.table)
-        res = res + self.drop_functions(self.table, self.column)
-        res = res + self.drop_table(self.table_name)
-
-        return res
-
     def create_table(self):
         """
         table (string)
         column (string)
         aggregats (array)
+
+        Return :
+        - 0 is case of creation + success
+        - 1 if table already exists
         """
-        sql = self.sql_create_table()
-        return pgcommands.execute_raw(sql, self.database)
+        if not self.agg_table_ispresent():
+            sql = self.sql_create_table()
+            return dbcommands.execute_raw(sql, self.database)
+        else:
+            return 1
 
     def create_triggers(self):
+        """Create all triggers
+        """
         res = 0
-        for sql in self.sql_create_triggers():
+        for (trigger_name, sql) in self.sql_create_triggers():
             if res == 0:
-                if self.verbose > 2:
-                    stm = pgcommands.mogrify(sql, database=self.database)
-                    sys.stdout.write(stm)
-                res = pgcommands.execute_raw(sql, self.database)
+                if not self.trigger_on_table_is_present(trigger_name):
+                    res = self.create_trigger(sql)
+        return res
+
+    def create_trigger(self, sql):
+        """Create a trigger
+        """
+        if self.verbose > 2:
+            stm = dbcommands.mogrify(sql, database=self.database)
+            sys.stdout.write(stm)
+        res = dbcommands.execute_raw(sql, self.database)
         return res
 
     def create_functions(self):
+        """Create all functions in the database
+        """
         res = 0
         for sql in self.sql_create_functions():
             if res == 0:
-                res = pgcommands.execute_raw(sql, self.database)
+                res = dbcommands.execute_raw(sql, self.database)
         return res
 
     def sql_create_table(self):
@@ -137,13 +164,21 @@ class AggTrigger(object):
 
     def column_typname(self):
         """Lookup for a column type
+
+        Depending on backend.sql_get_column_typname()[1] we need to
+        parse the result or not
         """
-        qry = self.backend.sql_get_column_typname()
+        (qry, parsefunc) = self.backend.sql_get_column_typname()
         params = (self.table, self.column)
-        res = pgcommands.lookup(qry,
+        res = dbcommands.lookup(qry,
                                 params=params,
                                 database=self.database)
-        return res
+        if parsefunc is None:
+            return res
+        else:
+            return eval("self.backend.%s('%s', '%s')" % (parsefunc,
+                                                         res,
+                                                         self.column))
 
     def sql_init(self):
         """
@@ -160,7 +195,7 @@ class AggTrigger(object):
         May be long on huge tables
         """
         sql = self.sql_init()
-        res = pgcommands.execute_raw(sql, database=self.database)
+        res = dbcommands.execute_raw(sql, database=self.database)
         return res
 
     def get_nb_tuples(self):
@@ -170,15 +205,17 @@ class AggTrigger(object):
         sql = self.backend.sql_nb_tuples()
         params = (self.table,)
         if self.verbose > 2:
-            msg = "[SQL] %s\n" % (pgcommands.mogrify(sql,
+            msg = "[SQL] %s\n" % (dbcommands.mogrify(sql,
                                                      params=params,
                                                      database=self.database))
             sys.stdout.write(msg)
-        res = pgcommands.lookup(sql, params=params, database=self.database)
+        res = dbcommands.lookup(sql, params=params, database=self.database)
         return res
 
     def sql_create_triggers(self):
         """Declaration des triggers
+
+        Return : Array of tuples (triggername, SQL_COMMAND)
         """
         sql = []
         for action in ACTIONS:
@@ -186,7 +223,6 @@ class AggTrigger(object):
             sql.append(self.sql_create_trigger(self.table,
                                                action,
                                                function))
-
         return sql
 
     def sql_create_trigger(self, table, action, function):
@@ -196,30 +232,29 @@ class AggTrigger(object):
         function (string): function's name called by the trigger
         """
         tgname = trigger_name(table, self.column, action)
-        return self.backend.sql_create_trigger(tgname,
-                                               function,
-                                               table,
-                                               action)
+        return (tgname, self.backend.sql_create_trigger(tgname,
+                                                        function,
+                                                        table,
+                                                        action))
 
-    def drop_table(self, name):
-        sql = self.sql_drop_table(name)
-        return pgcommands.execute_raw(sql)
+    def drop_table(self):
+        sql = self.sql_drop_table()
+        return dbcommands.execute_raw(sql)
 
-    def drop_functions(self, name, column):
+    def drop_functions(self):
         """DROP all related functions
         """
         res = 0
-        for sql in self.sql_drop_functions(name, column):
-            res = res + pgcommands.execute_raw(sql)
+        for sql in self.sql_drop_functions():
+            res = res + dbcommands.execute_raw(sql)
         return res
 
-    def sql_drop_functions(self, table, column):
-        """
-        Functions appellées par les triggers
+    def sql_drop_functions(self):
+        """Return SQL Statements to DROP all functions
         """
         sql = []
         for action in ACTIONS:
-            fname = function_name(table, column, action)
+            fname = function_name(self.table, self.column, action)
             sql.append(self.sql_drop_function(fname))
         return sql
 
@@ -267,34 +302,32 @@ class AggTrigger(object):
         """
         res = 0
         for sql in self.sql_drop_triggers(name):
-            res = res + pgcommands.execute_raw(sql, self.database)
+            res = res + dbcommands.execute_raw(sql, self.database)
         return res
 
-    def sql_drop_triggers(self, table):
-        """DROP triggers
-
-        table (string) : the table name
+    def sql_drop_triggers(self):
+        """Return SQL Statements to DROP ALL triggers
         """
         sql = []
         for action in ACTIONS:
-            tgname = trigger_name(table, self.column, action)
-            sql.append(self.sql_drop_trigger(tgname, table))
+            tgname = trigger_name(self.table, self.column, action)
+            sql.append(self.sql_drop_trigger(tgname, self.table))
         return sql
 
-    def sql_drop_function(self, name):
-        """Return SQL statement build by the backend
+    def sql_drop_function(self, fname):
+        """Return SQL statement from backend to DROP a function
         """
-        return self.backend.sql_drop_function(name)
+        return self.backend.sql_drop_function(fname)
 
     def sql_drop_trigger(self, name, table):
-        """Return SQL statement build by the backend
+        """Return SQL statement from backend to DROP a trigger
         """
         return self.backend.sql_drop_trigger(name, table)
 
-    def sql_drop_table(self, name):
-        """Return SQL statement build by the backend
+    def sql_drop_table(self):
+        """Return SQL statement from backend to DROP a table
         """
-        return self.backend.sql_drop_table(name)
+        return self.backend.sql_drop_table(self.table_name)
 
     def agg_function(self, fname, agg):
         """Return the aggregate name
@@ -302,3 +335,49 @@ class AggTrigger(object):
         fname (string) : min or max
         """
         return self.backend.agg_fname(agg, fname)
+
+    def agg_table_ispresent(self):
+        """Check if the agg table is present
+        """
+        qry = self.backend.sql_table_exists()
+        params = (self.table_name,)
+        res = dbcommands.lookup(qry,
+                                params=params,
+                                database=self.database)
+        return res
+
+    def triggers_on_table_are_present(self):
+        """Check if the triggers are present in database
+        """
+        res = []
+        qry = self.backend.sql_trigger_on_table_exists()
+        for trig in self.triggers_name:
+            params = (trig, self.table)
+            res.append((trig, dbcommands.lookup(qry,
+                                                params=params,
+                                                database=self.database)))
+        return res
+
+    def trigger_on_table_is_present(self, trgname):
+        """Check if a trigger is present on a table
+
+        Return False is the trigger does not exists
+
+        trganme : (string) trigger name
+        """
+        qry = self.backend.sql_trigger_on_table_exists()
+        params = (trgname, self.table)
+        res = dbcommands.lookup(qry, params=params, database=self.database)
+        return res
+
+    def functions_are_present(self):
+        """Check if the functions are present in database
+        """
+        res = []
+        qry = self.backend.sql_trigger_function_on_table_exists()
+        for func in self.functions_name:
+            params = (func[:-2], self.table)
+            res.append((func, dbcommands.lookup(qry,
+                                                params=params,
+                                                database=self.database)))
+        return res

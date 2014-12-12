@@ -95,9 +95,9 @@ class Command(BaseCommand):
 
             #  do nothing
             else:
+                sys.stdout.write("%s\n" % (agg.sql_create_table()))
                 for sql in agg.sql_create_functions():
                     sys.stdout.write(comment % (table, column, aggs))
-                    sys.stdout.write(sql)
-                for sql in agg.sql_create_triggers():
-                    sys.stdout.write(sql)
-                print agg.sql_create_table()
+                    sys.stdout.write("%s\n" % (sql))
+                for tgs in agg.sql_create_triggers():
+                    sys.stdout.write("%s\n" % (tgs[1]))

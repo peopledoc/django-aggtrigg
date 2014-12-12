@@ -2,7 +2,8 @@
 django-aggtrigg
 ===============
 
-Describe your database index in json files into your apps
+Create triggers to do some aggregate and permit to count objects from
+database without using COUNT() aggregat.
 
 Detailed documentation is in the "docs" directory.
 
@@ -21,8 +22,7 @@ Quick start
     from django_aggtrigg.models import IntegerTriggerField
     from django_aggtrigg.models import FloatTriggerField
 
-3. Configure your fields, by default only the `count` agggregat will
-be create, to user another on configure your field as is::
+3. Configure your fields as is::
 
     class Apple(models.Model):
         indice = IntegerTriggerField(default=0)
@@ -31,24 +31,25 @@ be create, to user another on configure your field as is::
         mark = FloatTriggerField(default=0)
         mark.aggregate_trigger=['min']
 
+By default only the `count` aggregat will be created.
+
 4. Use the new manager on you Model
 
     objects = AggTriggManager()
-
-Two aggregat will be compute for **indice** field, only one will be
-done on **mark**
 
 
 Manage triggers and related objects
 -----------------------------------
 
-To create the triggers just do::
+To create the triggers in the database do::
 
     python manage.py aggtrigg_create
 
-Dropping trigegrs is easy as doing::
+Dropping triggers is easy as doing::
 
-    python manage.py aggtrigg_drop
+    python manage.py aggtrigg_drop | psql -d DATABASE NAME
+
+For safety reason the drop command just ouptput on stdout the SQL statements.
 
 To initialize the aggregeate table, you can fill it by hand or do::
 

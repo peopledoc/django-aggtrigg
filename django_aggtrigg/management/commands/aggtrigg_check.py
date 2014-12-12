@@ -24,61 +24,69 @@ from optparse import make_option
 from ... import util
 import djutil
 
+STATUS = ['OK', 'KO']
+
 
 class Command(BaseCommand):
+    """Check database coherence with models
+    """
     help = 'Import datas'
     option_list = BaseCommand.option_list + (
-        make_option("-s",
-                    "--simulate",
-                    dest="simulate",
-                    action="store_true",
-                    help="juste print on stdout SQL commande, do nothing",
-                    default=False),
-        make_option("-t",
-                    "--table",
-                    dest="table",
-                    type="string",
-                    help="table name",
-                    default=None),
         make_option("-d",
                     "--database",
                     dest="database",
                     type="string",
-                    help="table name",
-                    default="default"),
-        make_option("-c",
-                    "--column",
-                    dest="column",
-                    type="string",
-                    help="column name",
-                    default=None))
+                    help="database name",
+                    default="default"),)
 
     def handle(self, *args, **options):
-        """
-        Handle action
+        """Handle action
         """
         trigs = djutil.get_agg_fields()
-        sys.stdout.write("found %d triggers\n" % (len(trigs)))
+        sys.stdout.write("--found %d triggers\n" % (len(trigs)))
         for trig in trigs:
             self.check_trigger(trig, options)
 
     def check_trigger(self, trig, options):
-        """
-        {'table': u'apple_apple',
-         'model': <class 'foo.apple.models.Apple'>,
+        """Check database for a trigger
+
+        trig : {'table': u'apple_apple',
+        'model': <class 'foo.apple.models.Apple'>,
          'aggs': ['max'],
          'field': 'indice'}
         """
         aggs = trig['aggs']
-        column = trig['field']
         table = trig['table']
 
         engine = settings.DATABASES[options['database']]['ENGINE']
 
-        agg = util.AggTrigger(engine, table, column, aggs)
+        agg = util.AggTrigger(engine, table, trig['field'], aggs)
         agg.verbose = int(options['verbosity'])
 
-        comment = "--\nmodel: %s\ntable: %s, column: %s, aggregats: %s\n"
+        comment = "\n".join(["--",
+                             "-- model: %s",
+                             "-- source: %s, column: %s, aggregats: %s"])
 
-        if table and column and len(aggs) > 0:
-            sys.stdout.write(comment % (trig['model'], table, column, aggs))
+        if table and trig['field'] and len(aggs) > 0:
+            sys.stdout.write(comment % (trig['model'], table,
+                                        trig['field'], aggs))
+            if agg.agg_table_ispresent():
+                msg = "OK table: %s is present\n" % (agg.table_name)
+            else:
+                msg = "KO table: %s is absent\n" % (agg.table_name)
+
+            sys.stdout.write(msg)
+
+            for trig in agg.triggers_on_table_are_present():
+                if trig[1]:
+                    msg = "OK trigger: %s is present\n" % (trig[0])
+                else:
+                    msg = "KO trigger: %s is absent\n" % (trig[0])
+                sys.stdout.write(msg)
+
+            for func in agg.functions_are_present():
+                if func[1]:
+                    msg = "OK function: %s is present\n" % (func[0])
+                else:
+                    msg = "KO function: %s is absent\n" % (func[0])
+                sys.stdout.write(msg)
