@@ -1,4 +1,4 @@
-recursive-include aggregate_trigger *
+recursive-include django_aggtrigg *
 global-exclude *.pyc
 include AUTHORS
 include CHANGELOG
