@@ -1,4 +1,4 @@
-# Django settings for django_aggregat_trigger_demo project.
+# Django settings for django_aggtrigg_demo project.
 
 import os
 
@@ -102,10 +102,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'django_aggregat_trigger_demo.urls'
+ROOT_URLCONF = 'django_aggtrigg_demo.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'django_aggregat_trigger_demo.wsgi.application'
+WSGI_APPLICATION = 'django_aggtrigg_demo.wsgi.application'
 
 TEMPLATE_DIRS = (
 )
