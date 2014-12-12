@@ -18,15 +18,12 @@
 #
 from django.db.models import get_models
 
-CLASSES = ["aggregat_trigger.models.IntegerTriggerField",
-           "aggregat_trigger.models.FloatTriggerField"]
+CLASSES = ["django_aggtrigg.models.IntegerTriggerField",
+           "django_aggtrigg.models.FloatTriggerField"]
 
 
 def is_trigg_field(fieldclass):
     """Check if the field is a triggered field
-
-    <class 'foo.aggregat_trigger.models.IntegerTriggerField'>
-    <class 'foo.aggregat_trigger.models.FloatTriggerField'>
     """
     ift = False
     fdc = fieldclass.split("'")

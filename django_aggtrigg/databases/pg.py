@@ -64,9 +64,9 @@ class TriggerPostgreSQL(object):
         return "DROP FUNCTION IF EXISTS {0}".format(name)
 
     def sql_create_trigger(self, name, function, table, action):
-        """Return a command to create a trigger in PostgreSQL
+        """Return the SQL statement to create a trigger
 
-        name (string): the function's name to drop
+        name (string): the function's name to call
         """
         return """CREATE TRIGGER {0} AFTER {3} ON {2}
         FOR EACH ROW
@@ -146,7 +146,7 @@ class TriggerPostgreSQL(object):
                         "AND attname=%s",
                         "AND atttypid=pg_type.oid",
                         "AND attrelid=pg_class.oid"])
-        return qry
+        return (qry, None)
 
     def sql_init_aggtable(self, name, column, aggname, aggregats):
         """Return a SQL statement to initialize aggregate table
@@ -186,3 +186,33 @@ class TriggerPostgreSQL(object):
             res = fname
 
         return res
+
+    def sql_table_exists(self):
+        """Return the query to find the typename of a column
+        """
+        qry = " ".join(["SELECT count(relname)",
+                        "FROM pg_class",
+                        "WHERE relname=%s",
+                        "AND relkind='r'"])
+        return qry
+
+    def sql_trigger_on_table_exists(self):
+        """Return the query to find the typename of a column
+        """
+        qry = " ".join(["SELECT count(pg_trigger.tgname)",
+                        "FROM pg_trigger,pg_class",
+                        "WHERE pg_trigger.tgrelid=pg_class.oid",
+                        "AND pg_trigger.tgname=%s",
+                        "AND pg_class.relname=%s"])
+        return qry
+
+    def sql_trigger_function_on_table_exists(self):
+        """Return the query to find the typename of a column
+        """
+        qry = " ".join(["SELECT count(pg_trigger.tgname)",
+                        "FROM pg_trigger,pg_class,pg_proc",
+                        "WHERE pg_trigger.tgrelid=pg_class.oid",
+                        "AND pg_trigger.tgfoid=pg_proc.oid",
+                        "AND pg_proc.proname=%s",
+                        "AND pg_class.relname=%s"])
+        return qry

@@ -26,14 +26,10 @@ import djutil
 
 
 class Command(BaseCommand):
+    """Print SQL Statements on STDOUT to DROP all objects
+    """
     help = 'Drop database relations'
     option_list = BaseCommand.option_list + (
-        make_option("-s",
-                    "--simulate",
-                    dest="simulate",
-                    action="store_true",
-                    help="juste print on stdout SQL commande, do nothing",
-                    default=False),
         make_option("-t",
                     "--table",
                     dest="table",
@@ -51,19 +47,11 @@ class Command(BaseCommand):
                     dest="database",
                     type="string",
                     help="table name",
-                    default="default"),
-        make_option("-q",
-                    "--quiet",
-                    dest="quiet",
-                    action="store_true",
-                    default=False))
+                    default="default"))
 
     def handle(self, *args, **options):
         """Do the job
         """
-        if options['quiet']:
-            options['verbosity'] = 0
-
         for trig in djutil.get_agg_fields():
             self.drop_trigger(trig, options)
 
@@ -76,7 +64,9 @@ class Command(BaseCommand):
 
         agg = util.AggTrigger(engine, table, column, aggs)
 
-        comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s\n"
-        sys.stdout.write("Warning, this will drop triggers and Table\n")
-        sys.stdout.write(comment % (agg.table_name, column, aggs))
-        print agg.drop_objects()
+        for sqltrig in agg.sql_drop_triggers():
+            sys.stdout.write("%s;\n" % (sqltrig))
+
+        for sqlfunc in agg.sql_drop_functions():
+            sys.stdout.write("%s;\n" % (sqlfunc))
+        sys.stdout.write("%s;\n" % (agg.sql_drop_table()))
