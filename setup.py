@@ -91,6 +91,5 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         install_requires=REQUIREMENTS,
         entry_points=ENTRY_POINTS,
         cmdclass=CMDCLASS,
-        setup_requires=SETUP_REQUIREMENTS,
-        repository="http://127.0.0.1"
+        setup_requires=SETUP_REQUIREMENTS
     )
