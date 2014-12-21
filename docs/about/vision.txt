@@ -2,7 +2,8 @@
 Vision
 ######
 
-`django-json-dbindex` helps you integrate and use complex indexes
-within a Django project.
+`django-aggtrigg` allows you to create triggers to do some aggregate
+and permit to count objects from database without using the `COUNT()`
+aggregate function.
 
 
