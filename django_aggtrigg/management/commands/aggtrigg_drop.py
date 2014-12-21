@@ -22,7 +22,7 @@ from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from ... import util
-import djutil
+from .. import djutil
 
 
 class Command(BaseCommand):
