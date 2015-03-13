@@ -73,6 +73,11 @@ class TriggerFieldMixin(object):
         super(TriggerFieldMixin, self).__init__(*args, **kwargs)
 
 
+class ForeignKeyTriggerField(TriggerFieldMixin, models.ForeignKey):
+
+    description = "An ForeignKeyField with trigger"
+
+
 class IntegerTriggerField(TriggerFieldMixin, models.IntegerField):
 
     description = "An IntegerField with trigger"

@@ -56,10 +56,11 @@ class Command(BaseCommand):
         """
         engine = settings.DATABASES[options['database']]['ENGINE']
 
-        agg = util.AggTrigger(engine,
-                              trig['table'],
-                              trig['field'],
-                              trig['aggs'])
+        agg = util.AggTrigger(
+            engine,
+            trig['table'],
+            trig["model"]._meta.get_field(trig['field']).attname,
+            trig['aggs'])
 
         agg.verbose = int(options['verbosity'])
 

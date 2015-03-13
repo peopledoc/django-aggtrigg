@@ -17,20 +17,7 @@
 #   without specific prior written permission.
 #
 from django.db.models import get_models
-
-CLASSES = ["django_aggtrigg.models.IntegerTriggerField",
-           "django_aggtrigg.models.FloatTriggerField"]
-
-
-def is_trigg_field(fieldclass):
-    """Check if the field is a triggered field
-    """
-    ift = False
-    fdc = fieldclass.split("'")
-    for fclass in CLASSES:
-        ift = ift or fdc[1].endswith(fclass)
-    return ift
-
+from django_aggtrigg.models import TriggerFieldMixin
 
 def get_agg_fields():
     """Return all special field defined
@@ -38,8 +25,10 @@ def get_agg_fields():
     trigg = []
 
     for model in get_models():
+
         for field in model._meta.fields:
-            if is_trigg_field(str(field.__class__)):
+
+            if isinstance(field, TriggerFieldMixin):
                 trigg.append({"model": model,
                               "table": model._meta.db_table,
                               "field": field.name,
