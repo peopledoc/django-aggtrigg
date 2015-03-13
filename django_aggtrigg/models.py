@@ -30,7 +30,55 @@ class MissingKwargs(Exception):
     pass
 
 
+class TriggerFieldMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.aggregate_trigger = ['count']
+        super(TriggerFieldMixin, self).__init__(*args, **kwargs)
+
+
+class ForeignKeyTriggerField(TriggerFieldMixin, models.ForeignKey):
+
+    description = "An ForeignKeyField with trigger"
+
+
+class IntegerTriggerField(TriggerFieldMixin, models.IntegerField):
+
+    description = "An IntegerField with trigger"
+
+
+class FloatTriggerField(TriggerFieldMixin, models.FloatField):
+
+    description = "An FloatField with trigger"
+
+
+
 class AggTriggManager(models.Manager):
+
+    def get_queryset(self):
+        """Returns a new QuerySet object.  Subclasses can override this method
+        to easily customize the behavior of the Manager.
+        """
+
+        qs = super(AggTriggManager, self).get_queryset()
+
+        for k, v in self.model.__dict__.iteritems():
+            if isinstance(v,
+                          models.fields.related.ForeignRelatedObjectsDescriptor):
+                if isinstance(v.related.field, ForeignKeyTriggerField):
+                    table = "{}__{}_agg".format(
+                        v.related.model._meta.db_table,
+                        v.related.field.attname)
+                    for agg in v.related.field.aggregate_trigger:
+                        select = {}
+                        param = "select {} from {} where {}={}.{}".format(
+                            "agg_{}".format(agg),
+                            table,
+                            v.related.field.attname,
+                            self.model._meta.db_table,
+                            self.model._meta.pk.name)
+                        select["{}_count".format(v.related.var_name)] = param
+                        qs = qs.extra(select=select)
+        return qs
 
     def optimized_count(self, **kwargs):
         """Return count in optimized manner
@@ -65,27 +113,6 @@ class AggTriggManager(models.Manager):
         cursor.execute(qry.format(agf, tbname, qfilter), [value])
         row = cursor.fetchone()
         return row[0]
-
-
-class TriggerFieldMixin(object):
-    def __init__(self, *args, **kwargs):
-        self.aggregate_trigger = ['count']
-        super(TriggerFieldMixin, self).__init__(*args, **kwargs)
-
-
-class ForeignKeyTriggerField(TriggerFieldMixin, models.ForeignKey):
-
-    description = "An ForeignKeyField with trigger"
-
-
-class IntegerTriggerField(TriggerFieldMixin, models.IntegerField):
-
-    description = "An IntegerField with trigger"
-
-
-class FloatTriggerField(TriggerFieldMixin, models.FloatField):
-
-    description = "An FloatField with trigger"
 
 
 # As the fields define here are not special types, it's easy to let
