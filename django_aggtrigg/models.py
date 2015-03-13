@@ -50,7 +50,8 @@ class AggTriggManager(models.Manager):
         agg = 'agg_count'
         agf = agg.split('_')
 
-        agt = util.AggTrigger(self.model._meta.db_table, column)
+        agt = util.AggTrigger(util.PG_BACKEND, self.model._meta.db_table,
+                              column)
 
         if nbe == 1:
             agf = agg
