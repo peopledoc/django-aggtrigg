@@ -60,25 +60,24 @@ class AggTriggManager(models.Manager):
 
         cursor = connection.cursor()
         qry = """SELECT {} FROM {} WHERE {} %s"""
+
         tbname = util.table_name(self.model._meta.db_table, column)
         cursor.execute(qry.format(agf, tbname, qfilter), [value])
         row = cursor.fetchone()
         return row[0]
 
 
-class IntegerTriggerField(models.IntegerField):
+class TriggerFieldMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.aggregate_trigger = ['count']
+        super(TriggerFieldMixin, self).__init__(*args, **kwargs)
+
+
+class IntegerTriggerField(TriggerFieldMixin, models.IntegerField):
 
     description = "An IntegerField with trigger"
 
-    def __init__(self, *args, **kwargs):
-        self.aggregate_trigger = ['count']
-        super(IntegerTriggerField, self).__init__(*args, **kwargs)
 
-
-class FloatTriggerField(models.FloatField):
+class FloatTriggerField(TriggerFieldMixin, models.FloatField):
 
     description = "An FloatField with trigger"
-
-    def __init__(self, *args, **kwargs):
-        self.aggregate_trigger = ['count']
-        super(FloatTriggerField, self).__init__(*args, **kwargs)
