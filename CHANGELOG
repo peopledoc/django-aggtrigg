@@ -4,6 +4,12 @@ Changelog
 This document describes changes between each past release. For information
 about future releases, check `milestones`_ and :doc:`/about/vision`.
 
+0.6.6 (2014-03-13)
+-----
+
+- Thanks to Yohann Gabory to add south support
+
+
 0.6.5
 -----
 

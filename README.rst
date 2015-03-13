@@ -1,10 +1,16 @@
-===============
 django-aggtrigg
 ===============
 
+Automatic trigger generator for Django
+
+.. image:: https://img.shields.io/pypi/v/djorm-pgarray.svg?style=flat
+    :target: https://pypi.python.org/pypi/django-aggtrigg
+
+.. image:: https://img.shields.io/pypi/dm/djorm-pgarray.svg?style=flat
+    :target: https://pypi.python.org/pypi/django-aggtrigg
+
 Create triggers to do some aggregate and permit to count objects from
 database without using COUNT() aggregat.
-
 Detailed documentation is in the "docs" directory.
 
 Quick start
