@@ -81,3 +81,17 @@ class FloatTriggerField(models.FloatField):
     def __init__(self, *args, **kwargs):
         self.aggregate_trigger = ['count']
         super(FloatTriggerField, self).__init__(*args, **kwargs)
+
+
+# As the fields define here are not special types, it's easy to let
+# south add them to a migration. The code below will make the revelant
+# work to make south able to manage the migration.
+# cf. http://south.aeracode.org/wiki/MyFieldsDontWork for the explanation
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules(
+        [], ["^django_aggtrigg\.models\.IntegerTriggerField"])
+    add_introspection_rules(
+        [], ["^django_aggtrigg\.models\.FloatTriggerField"])
+except ImportError:
+    pass
