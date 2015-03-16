@@ -76,9 +76,10 @@ class Command(BaseCommand):
          'field': 'indice'}
         """
         aggs = trig['aggs']
-        column = trig['field']
+        # rely on django to find the "real" column name. foreignkeys
+        # names are "relation" but column is "relation_id"
+        column = trig["model"]._meta.get_field(trig['field']).attname
         table = trig['table']
-
         engine = settings.DATABASES[options['database']]['ENGINE']
 
         agg = util.AggTrigger(engine, table, column, aggs)
