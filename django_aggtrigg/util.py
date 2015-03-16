@@ -70,13 +70,14 @@ class AggTrigger(object):
 
     def __init__(self, engine, table, column,
                  aggregats=['count'],
-                 database='default'):
+                 database='default',
+                 model=None):
         self.verbose = 0
         self.table = table
         self.column = column
         self.aggregats = aggregats
         self.database = database
-
+        self.model = model
         # use the right backend
         if engine == PG_BACKEND:
             from databases.pg import TriggerPostgreSQL
@@ -158,6 +159,7 @@ class AggTrigger(object):
         """
         """
         typname = self.column_typname()
+
         return self.backend.sql_create_table(self.table_name,
                                              (self.column, typname),
                                              self.aggregats)
@@ -283,6 +285,27 @@ class AggTrigger(object):
         fname = function_name(table, column, action)
         tname = table_name(table, column)
         sql = None
+        from django.db.models import Q
+        from django.db import connections
+        connection = connections["default"]
+        for agg in aggregats:
+            if isinstance(agg, dict):
+                # First we create a queryset with Q objects
+                query = Q()
+                for filter in agg["count"][0]["private"]:
+                    query &= Q(**{filter["field"]: filter["value"]})
+                # once the queryset is made, we will retreive the where clause.
+                compiler = self.model.objects.filter(query).query.get_compiler(
+                    connection=connection)
+                qn = compiler.quote_name_unless_alias
+
+                where_clause = self.model.objects.filter(
+                    query).query.where.as_sql(
+                    qn,
+                    connection
+                )
+                # the join map can be usefull too
+                join_map = self.model.objects.filter(query).query.join_map
         if action == 'insert':
             sql = self.backend.sql_create_function_insert(fname, table,
                                                           column, tname)

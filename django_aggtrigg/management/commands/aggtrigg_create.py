@@ -78,11 +78,11 @@ class Command(BaseCommand):
         aggs = trig['aggs']
         # rely on django to find the "real" column name. foreignkeys
         # names are "relation" but column is "relation_id"
-        column = trig["model"]._meta.get_field(trig['field']).attname
+        model = trig["model"]
+        column = model._meta.get_field(trig['field']).attname
         table = trig['table']
         engine = settings.DATABASES[options['database']]['ENGINE']
-
-        agg = util.AggTrigger(engine, table, column, aggs)
+        agg = util.AggTrigger(engine, table, column, aggs, model=model)
         agg.verbose = int(options['verbosity'])
 
         comment = "-- table:    %s\n-- column:   %s\n-- aggregat: %s\n"
