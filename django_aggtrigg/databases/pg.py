@@ -33,17 +33,33 @@ class TriggerPostgreSQL(object):
 
         template = env.get_template('pg_create_table.sql')
         aggs = []
+        print name
         for agg in aggregats:
             col_type = column[1]
             if agg == "count":
                 col_type = "integer"
-            aggs.append({"name": agg,
-                         "type": col_type})
+            if isinstance(agg, dict):
+                agg_type = agg.keys()[0]
+                if agg_type == "count":
+                    col_type = "integer"
+                for trigger in agg[agg_type]:
+                    agg_name = trigger.keys()[0]
+                    for filter in trigger[agg_name]:
+                        filter_name = "{}_{}".format(
+                            filter["field"],
+                            filter["value"])
+                        aggs.append(
+                            {"name": "{}_{}_{}".format(agg_type,
+                                                       agg_name,
+                                                       filter_name),
+                             "type": col_type})
+            else:
+                aggs.append({"name": agg,
+                             "type": col_type})
 
         return template.render(name=name,
                                column={"name": column[0], "type": column[1]},
                                aggregats=aggs)
-
 
     def sql_drop_table(self, name):
         """Return a command to drop a table in PostgreSQL
