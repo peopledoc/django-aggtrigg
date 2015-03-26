@@ -60,7 +60,8 @@ class Command(BaseCommand):
             engine,
             trig['table'],
             trig["model"]._meta.get_field(trig['field']).attname,
-            trig['aggs'])
+            trig['aggs'],
+            model=trig["model"])
 
         agg.verbose = int(options['verbosity'])
 
