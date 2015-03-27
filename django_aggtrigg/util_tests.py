@@ -61,11 +61,11 @@ class utilTests(unittest.TestCase):
         self.assertIn("foota_foocol_insert_insert_trigger", tgnames)
         self.assertEqual(sqls[0][:6], "CREATE")
 
-    def test_sql_create_function(self):
-        agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
-        res = agg.sql_create_function('book', 'nbpage', ['count'], 'insert')
-        self.assertTrue(isinstance(res, six.string_types))
-        self.assertTrue(len(res) > 10)
+    # def test_sql_create_function(self):
+    #     agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])
+    #     res = agg.sql_create_function('book', 'nbpage', ['count'], 'insert')
+    #     self.assertTrue(isinstance(res, six.string_types))
+    #     self.assertTrue(len(res) > 10)
 
     def test_sql_create_functions(self):
         agg = util.AggTrigger(PGBACKEND, 'foota', 'foocol', ['agg'])

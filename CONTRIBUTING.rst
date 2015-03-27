@@ -48,7 +48,7 @@ Clone `django-aggtrigg` repository (adapt to use your own fork):
 
 .. code:: sh
 
-   git clone git@github.com:novapost/django-aggtrigg.git
+   git clone git@github.com:novafloss/django-aggtrigg.git
    cd django-aggtrigg/
 
 
@@ -78,9 +78,9 @@ See also ``make help``.
 
 .. target-notes::
 
-.. _`django-aggtrigg bugtracker`: https://github.com/novapost/django-aggtrigg/issues
-.. _`rebase`: http://git-scm.com/book/en/Git-Branching-Rebasing
-.. _`merge-based rebase`: http://tech.novapost.fr/psycho-rebasing-en.html
+.. _`django-aggtrigg bugtracker`: https://github.com/novafloss/django-aggtrigg/issues
+.. _`rebase`: http://git-scm.com/book/en/v2/Git-Branching-Rebasing
+.. _`merge-based rebase`: http://git-scm.com/book/en/v2/Git-Branching-Rebasing
 .. _`pip`: https://pypi.python.org/pypi/pip/
 .. _`tox`: https://pypi.python.org/pypi/tox/
 .. _`Sphinx`: https://pypi.python.org/pypi/Sphinx/
