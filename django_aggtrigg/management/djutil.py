@@ -19,6 +19,7 @@
 from django.db.models import get_models
 from django_aggtrigg.models import TriggerFieldMixin
 
+
 def get_agg_fields():
     """Return all special field defined
     """

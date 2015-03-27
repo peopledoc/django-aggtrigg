@@ -18,6 +18,7 @@
 #   without specific prior written permission.
 #
 import sys
+import six
 from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -69,7 +70,7 @@ class Command(BaseCommand):
                              u"%s contains %s tuples approximatively,",
                              u"maybe long : [y/N] (please type yes to do)\n"])
 
-        answer = raw_input(message % (agg.table_name,
+        answer = six.input(message % (agg.table_name,
                                       trig['table'],
                                       agg.get_nb_tuples()))
         if answer == "yes":

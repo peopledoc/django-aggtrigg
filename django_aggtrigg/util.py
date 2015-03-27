@@ -16,6 +16,7 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
+import six
 from django.db.models import Q
 from django.db import connections
 import dbcommands
@@ -64,8 +65,9 @@ def triggers_name(table, column, functions):
 
 
 def parse_where_clause(where_clause, table, new_old=None):
-    params = ["'{}'".format(param) if type(param) == unicode else param for
-              param in where_clause[1]]
+    params = ["'{}'".format(param) if type(
+        param) == six.string_type else param for
+        param in where_clause[1]]
 
     return where_clause[0].replace(
         '"', "").replace(
