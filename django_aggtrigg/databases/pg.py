@@ -112,7 +112,8 @@ class TriggerPostgreSQL(object):
         """
         return """CREATE TRIGGER {0} AFTER {3} ON {2}
         FOR EACH ROW
-        EXECUTE PROCEDURE {1}""".format(name, function, table, action.upper())
+        EXECUTE PROCEDURE {1}""".format(name, function, table,
+                                        action.upper())
 
     def sql_create_function_insert(self, name, table,
                                    column, aggtable, action,
