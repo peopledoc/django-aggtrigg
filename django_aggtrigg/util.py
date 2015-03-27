@@ -407,8 +407,8 @@ class AggTrigger(object):
         """Return SQL Statements to DROP ALL triggers
         """
         sql = []
-        for action in ACTIONS:
-            tgname = trigger_name(self.table, self.column, action)
+        for function, action in self.functions.iteritems():
+            tgname = trigger_name(self.table, self.column, function, action)
             sql.append(self.sql_drop_trigger(tgname, self.table))
         return sql
 
