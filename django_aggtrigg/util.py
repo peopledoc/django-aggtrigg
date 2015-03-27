@@ -117,7 +117,7 @@ class AggTrigger(object):
             else:
                 for action in ["insert", "update", "delete"]:
                     fname = function_name(table, column, action)
-                self.functions[fname] = action
+                    self.functions[fname] = action
 
     @property
     def table_name(self):
@@ -166,6 +166,7 @@ class AggTrigger(object):
         """
         res = 0
         for (trigger_name, sql) in self.sql_create_triggers():
+
             if res == 0:
                 if not self.trigger_on_table_is_present(trigger_name):
                     res = self.create_trigger(sql)
@@ -390,7 +391,6 @@ class AggTrigger(object):
                 resp = getattr(self.backend, meth)(
                     fname, table,
                     column, tname, action)
-                print resp
                 sql.append(resp)
 
         return sql
