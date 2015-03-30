@@ -57,12 +57,13 @@ class Command(BaseCommand):
 
     def drop_trigger(self, trig, options):
         aggs = trig['aggs']
-        column = trig['field']
+        model = trig["model"]
+        column = model._meta.get_field(trig['field']).attname
         table = trig['table']
 
         engine = settings.DATABASES[options['database']]['ENGINE']
 
-        agg = util.AggTrigger(engine, table, column, aggs)
+        agg = util.AggTrigger(engine, table, column, aggs, model=model)
 
         for sqltrig in agg.sql_drop_triggers():
             sys.stdout.write("%s;\n" % (sqltrig))

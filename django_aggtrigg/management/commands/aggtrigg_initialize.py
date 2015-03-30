@@ -38,7 +38,8 @@ class Command(BaseCommand):
                     "--quiet",
                     dest="quiet",
                     action="store_true",
-                    default=False))
+                    default=False)
+    )
 
     def handle(self, *args, **options):
         """
@@ -60,7 +61,8 @@ class Command(BaseCommand):
             engine,
             trig['table'],
             trig["model"]._meta.get_field(trig['field']).attname,
-            trig['aggs'])
+            trig['aggs'],
+            model=trig["model"])
 
         agg.verbose = int(options['verbosity'])
 
@@ -68,7 +70,12 @@ class Command(BaseCommand):
                              u"%s contains %s tuples approximatively,",
                              u"maybe long : [y/N] (please type yes to do)\n"])
 
-        answer = raw_input(message % (agg.table_name,
+        if options.get("quiet"):
+            answer = "yes"
+        else:
+            if sys.version_info.major == 2:
+                input = raw_input  # noqa
+            answer = input(message % (agg.table_name,
                                       trig['table'],
                                       agg.get_nb_tuples()))
         if answer == "yes":

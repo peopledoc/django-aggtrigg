@@ -20,10 +20,11 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(data_dir, 'db.sqlite')
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'django_aggtrig'
     }
 }
+
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts

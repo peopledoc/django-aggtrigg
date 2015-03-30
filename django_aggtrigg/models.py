@@ -51,7 +51,6 @@ class FloatTriggerField(TriggerFieldMixin, models.FloatField):
     description = "An FloatField with trigger"
 
 
-
 class AggTriggManager(models.Manager):
 
     def get_queryset(self):
@@ -62,8 +61,9 @@ class AggTriggManager(models.Manager):
         qs = super(AggTriggManager, self).get_queryset()
 
         for k, v in self.model.__dict__.iteritems():
-            if isinstance(v,
-                          models.fields.related.ForeignRelatedObjectsDescriptor):
+            if isinstance(
+                    v,
+                    models.fields.related.ForeignRelatedObjectsDescriptor):
                 if isinstance(v.related.field, ForeignKeyTriggerField):
                     table = "{}__{}_agg".format(
                         v.related.model._meta.db_table,

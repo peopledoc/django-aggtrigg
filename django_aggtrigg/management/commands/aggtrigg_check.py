@@ -57,10 +57,13 @@ class Command(BaseCommand):
         """
         aggs = trig['aggs']
         table = trig['table']
-
+        model = trig["model"]
+        column = model._meta.get_field(trig['field']).attname
         engine = settings.DATABASES[options['database']]['ENGINE']
 
-        agg = util.AggTrigger(engine, table, trig['field'], aggs)
+        agg = util.AggTrigger(engine, table, column,
+                              aggs, model=model)
+
         agg.verbose = int(options['verbosity'])
 
         comment = "\n".join(["--",

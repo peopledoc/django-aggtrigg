@@ -10,9 +10,9 @@ class Apple(models.Model):
     name = models.CharField(max_length=300)
 
     indice = IntegerTriggerField(default=0)
-    indice.aggregate_trigger=['count']
+    indice.aggregate_trigger = ['count']
 
     mark = FloatTriggerField(default=0)
-    indice.aggregate_trigger=['count','min']
+    indice.aggregate_trigger = ['count', 'min']
 
     objects = AggTriggManager()

@@ -13,6 +13,7 @@
 #   and/or other materials provided with the distribution.
 
 from jinja2 import Environment, FileSystemLoader
+from django_aggtrigg.util import parse_where_clause
 import os
 
 
@@ -27,23 +28,60 @@ class TriggerPostgreSQL(object):
         name : functions name
         column (tuple): column name and typname
         aggregats (array): aggregats used
+
+        - Each aggregate can be of 2 kind. string or dict.
+
+        string is the simplest it can be on of count, max, sum, etc...
+
+        dict is in the form:
+            - aggregate_type:
+                - pretty name
+                    - list of filters with field and value.
+        example::
+
+            {"count":
+                [
+                    {"private": [
+                        {"field": "is_private", "value": True}
+                       ]
+                    }
+                ]
+            }
+
+        each "agg_type" can have more than one aggregate (one for
+        public another for private for example), each aggregate can
+        have multiple filters. All filters are ANDed OR and NOR is not
+        possible for the moment.
+
         """
         tpl = os.path.join(os.path.dirname(__file__), 'templates')
         env = Environment(loader=FileSystemLoader(tpl))
 
         template = env.get_template('pg_create_table.sql')
         aggs = []
+
         for agg in aggregats:
             col_type = column[1]
             if agg == "count":
                 col_type = "integer"
-            aggs.append({"name": agg,
+            if isinstance(agg, dict):
+                agg_type = agg.keys()[0]
+                if agg_type == "count":
+                    col_type = "integer"
+                for trigger in agg[agg_type]:
+                    agg_name = trigger.keys()[0]
+                    aggs.append(
+                        {"name": "{}_{}".format(agg_type,
+                                                agg_name),
                          "type": col_type})
-
-        return template.render(name=name,
-                               column={"name": column[0], "type": column[1]},
-                               aggregats=aggs)
-
+            else:
+                aggs.append({"name": agg,
+                             "type": col_type})
+        temp = template.render(
+            name=name,
+            column={"name": column[0], "type": column[1]},
+            aggregats=aggs)
+        return temp
 
     def sql_drop_table(self, name):
         """Return a command to drop a table in PostgreSQL
@@ -72,11 +110,16 @@ class TriggerPostgreSQL(object):
 
         name (string): the function's name to call
         """
-        return """CREATE TRIGGER {0} AFTER {3} ON {2}
+        response = """CREATE TRIGGER {0} AFTER {3} ON {2}
         FOR EACH ROW
-        EXECUTE PROCEDURE {1}""".format(name, function, table, action.upper())
+        EXECUTE PROCEDURE {1}""".format(name, function, table,
+                                        action.upper())
+        return response
 
-    def sql_create_function_insert(self, name, table, column, aggtable):
+    def sql_create_function_insert(self, name, table,
+                                   column, aggtable, action,
+                                   where_clause=None,
+                                   agg_key=None):
         """Return a SQL statement to create a FUNCTION
 
         name : function name
@@ -86,21 +129,27 @@ class TriggerPostgreSQL(object):
         """
         tpl = os.path.join(os.path.dirname(__file__), 'templates')
         env = Environment(loader=FileSystemLoader(tpl))
-
         template = env.get_template('pg_function_insert.sql')
-
-        actions = "agg_count=agg_count+1"
-
+        if agg_key is None:
+            actions = "agg_count=agg_count+1"
+        else:
+            actions = "agg_count_{0}=agg_count_{0}+1".format(agg_key)
         insert_values = 1
+        if where_clause:
+            where_clause = parse_where_clause(where_clause, table, "NEW")
+        tmp = template.render(name=name,
+                              table=table,
+                              aggtable=aggtable,
+                              column=column,
+                              actions=actions,
+                              insert_values=insert_values,
+                              where_clause=where_clause)
+        return tmp
 
-        return template.render(name=name,
-                               table=table,
-                               aggtable=aggtable,
-                               column=column,
-                               actions=actions,
-                               insert_values=insert_values)
-
-    def sql_create_function_delete(self, name, column, aggtable, action):
+    def sql_create_function_delete(self, name, table,
+                                   column, aggtable, action,
+                                   where_clause=None,
+                                   agg_key=None):
         """Return a SQL statement to create a FUNCTION
 
         name : functions name
@@ -112,14 +161,25 @@ class TriggerPostgreSQL(object):
         env = Environment(loader=FileSystemLoader(tpl))
         template = env.get_template('pg_function_delete.sql')
 
-        actions = "agg_count=agg_count-1"
+        if agg_key is None:
+            actions = "agg_count=agg_count+1"
+        else:
+            actions = "agg_count_{0}=agg_count_{0}-1".format(agg_key)
 
-        return template.render(name=name,
-                               table=aggtable,
-                               column=column,
-                               actions=actions)
+        if where_clause:
+            where_clause = parse_where_clause(where_clause, table, "OLD")
 
-    def sql_create_function_update(self, name, column, aggtable, action):
+        tmp = template.render(name=name,
+                              table=aggtable,
+                              column=column,
+                              actions=actions,
+                              where_clause=where_clause)
+        return tmp
+
+    def sql_create_function_update(self, name, table,
+                                   column, aggtable, action,
+                                   where_clause=None,
+                                   agg_key=None):
         """Return a SQL statement to create a FUNCTION
 
         name : functions name
@@ -131,15 +191,27 @@ class TriggerPostgreSQL(object):
         env = Environment(loader=FileSystemLoader(tpl))
 
         template = env.get_template('pg_function_update.sql')
+        if agg_key is None:
+            actions_new = "agg_count=agg_count+1"
+            actions_old = "agg_count=agg_count-1"
+        else:
+            actions_new = "agg_count_{0}=agg_count_{0}+1".format(agg_key)
+            actions_old = "agg_count_{0}=agg_count_{0}-1".format(agg_key)
 
-        actions_new = "agg_count=agg_count+1"
-        actions_old = "agg_count=agg_count-1"
+        if where_clause:
+            old_where_clause = parse_where_clause(where_clause, table, "OLD")
+            where_clause = parse_where_clause(where_clause, table, "NEW")
+        else:
+            old_where_clause = None
 
-        return template.render(name=name,
+        temp = template.render(name=name,
                                table=aggtable,
                                column=column,
                                actions_old=actions_old,
-                               actions_new=actions_new)
+                               actions_new=actions_new,
+                               where_clause=where_clause,
+                               old_where_clause=old_where_clause)
+        return temp
 
     def sql_get_column_typname(self):
         """Return the query to find the typename of a column
@@ -160,17 +232,17 @@ class TriggerPostgreSQL(object):
         aggname (string) : aggregate table name
         aggregats (array): aggregats used
         """
+
         tpl = os.path.join(os.path.dirname(__file__), 'templates')
         env = Environment(loader=FileSystemLoader(tpl))
 
         template = env.get_template('pg_init.sql')
-        aggs = []
-        for agg in aggregats:
-            aggs.append(agg)
-        return template.render(table=name,
+
+        temp = template.render(table=name,
                                aggtable=aggname,
                                column=column,
-                               aggregats=aggs)
+                               aggregats=aggregats)
+        return temp
 
     def sql_nb_tuples(self):
         """Return a SQL statement to know appox number of tuples in a table

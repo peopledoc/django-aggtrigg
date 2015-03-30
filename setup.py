@@ -44,7 +44,8 @@ REQUIREMENTS = [
     'Django<1.7',
     'setuptools',
     'psycopg2',
-    'jinja2'
+    'jinja2',
+    'six'
 ]
 ENTRY_POINTS = {}
 CMDCLASS = {}

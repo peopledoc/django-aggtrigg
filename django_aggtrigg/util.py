@@ -16,6 +16,9 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
+import six
+from django.db.models import Q
+from django.db import connections
 import dbcommands
 import sys
 
@@ -38,19 +41,38 @@ class ActionUnknown(Exception):
     pass
 
 
-def function_name(table, column, action):
-    return "{0}_{1}_{2}()".format(table, column, action)
+def function_name(table, column, action, key=None):
+    if key:
+        action = "_".join([action, key])
+    fname = "{0}_{1}_{2}()".format(table, column, action)
+    return fname
 
 
-def trigger_name(table, column, action):
-    return "{0}_{1}_{2}_trigger".format(table, column, action)
+def trigger_name(table, column, function, action):
+    function = function.split("_")[-1][:-2]
+    tname = "{0}_{1}_{2}_{3}_trigger".format(table, column, function, action)
+    return tname
 
 
-def triggers_name(table, column):
+def triggers_name(table, column, functions):
     tgs = []
-    for action in ACTIONS:
-        tgs.append("{0}_{1}_{2}_trigger".format(table, column, action))
+
+    for function, action in functions.iteritems():
+        function = function.split("_")[-1][:-2]
+        tgs.append("{0}_{1}_{2}_{3}_trigger".format(table, column,
+                                                    function, action))
     return tgs
+
+
+def parse_where_clause(where_clause, table, new_old=None):
+    params = ["'{}'".format(param) if type(
+        param) == six.string_type else param for
+        param in where_clause[1]]
+
+    return where_clause[0].replace(
+        '"', "").replace(
+            '%s', '{}').replace(
+                table, new_old).format(*params)
 
 
 def table_name(table, column):
@@ -70,13 +92,15 @@ class AggTrigger(object):
 
     def __init__(self, engine, table, column,
                  aggregats=['count'],
-                 database='default'):
+                 database='default',
+                 model=None):
         self.verbose = 0
         self.table = table
         self.column = column
         self.aggregats = aggregats
         self.database = database
-
+        self.model = model
+        self.functions = {}
         # use the right backend
         if engine == PG_BACKEND:
             from databases.pg import TriggerPostgreSQL
@@ -84,13 +108,26 @@ class AggTrigger(object):
         else:
             raise DatabaseNotSupported()
 
+        for agg in self.aggregats:
+            if isinstance(agg, dict):
+                for agg_key, where_clause in self.extract_agg_where_clause(
+                        agg).iteritems():
+                    for action in ["insert", "update", "delete"]:
+                        fname = function_name(table, column,
+                                              action, key=agg_key)
+                        self.functions[fname] = action
+            else:
+                for action in ["insert", "update", "delete"]:
+                    fname = function_name(table, column, action)
+                    self.functions[fname] = action
+
     @property
     def table_name(self):
         return table_name(self.table, self.column)
 
     @property
     def triggers_name(self):
-        return triggers_name(self.table, self.column)
+        return triggers_name(self.table, self.column, self.functions)
 
     @property
     def functions_name(self):
@@ -131,6 +168,7 @@ class AggTrigger(object):
         """
         res = 0
         for (trigger_name, sql) in self.sql_create_triggers():
+
             if res == 0:
                 if not self.trigger_on_table_is_present(trigger_name):
                     res = self.create_trigger(sql)
@@ -158,6 +196,7 @@ class AggTrigger(object):
         """
         """
         typname = self.column_typname()
+
         return self.backend.sql_create_table(self.table_name,
                                              (self.column, typname),
                                              self.aggregats)
@@ -184,10 +223,29 @@ class AggTrigger(object):
         """
         Remplissage de la table technique avec les données existantes
         """
+        aggs = {}
+        for agg in self.aggregats:
+            if isinstance(agg, dict):
+                agg_type = agg.keys()[0]
+                for trigger in agg[agg_type]:
+                    agg_name = trigger.keys()[0]
+                    aggs[agg_name] = {"column": "agg_{}_{}".format(agg_type,
+                                                                   agg_name)}
+
+                for agg_key, where_clause in self.extract_agg_where_clause(
+                        agg).iteritems():
+                    aggs[agg_key]["where"] = where_clause[0] % tuple(
+                        where_clause[1])
+
+            else:
+                agg_type = agg
+                agg_name = "agg_{}".format(agg_type)
+                aggs[agg_name] = {"column": agg_name, "where": None}
+
         sql = self.backend.sql_init_aggtable(self.table,
                                              self.column,
                                              self.table_name,
-                                             self.aggregats)
+                                             aggs)
         return sql
 
     def initialize(self):
@@ -218,8 +276,7 @@ class AggTrigger(object):
         Return : Array of tuples (triggername, SQL_COMMAND)
         """
         sql = []
-        for action in ACTIONS:
-            function = function_name(self.table, self.column, action)
+        for function, action in self.functions.iteritems():
             sql.append(self.sql_create_trigger(self.table,
                                                action,
                                                function))
@@ -231,7 +288,7 @@ class AggTrigger(object):
         action (string): insert, update or create
         function (string): function's name called by the trigger
         """
-        tgname = trigger_name(table, self.column, action)
+        tgname = trigger_name(table, self.column, function, action)
         return (tgname, self.backend.sql_create_trigger(tgname,
                                                         function,
                                                         table,
@@ -253,8 +310,7 @@ class AggTrigger(object):
         """Return SQL Statements to DROP all functions
         """
         sql = []
-        for action in ACTIONS:
-            fname = function_name(self.table, self.column, action)
+        for fname in self.functions.iterkeys():
             sql.append(self.sql_drop_function(fname))
         return sql
 
@@ -267,11 +323,44 @@ class AggTrigger(object):
         """
         sql = []
         for action in ACTIONS:
-            sql.append(self.sql_create_function(self.table,
-                                                self.column,
-                                                self.aggregats,
-                                                action))
+            funcs = self.sql_create_function(self.table,
+                                             self.column,
+                                             self.aggregats,
+                                             action)
+            for func in funcs:
+                sql.append(func)
         return sql
+
+    def extract_agg_where_clause(self, agg):
+        """
+        For aggregations relying on the ORM extract the where clause from
+        Django
+        """
+        connection = connections["default"]
+        result = {}
+        for aggregation_type in agg.iterkeys():
+            # foreach aggregation type we can have multiple
+            # aggregation with different filters
+            for aggregation in agg[aggregation_type]:
+                # at this level we can create the queryset and
+                # extract the where clause
+                for agg_key in aggregation:
+                    # First we create a queryset with Q objects
+                    query = Q()
+                    for filter in aggregation[agg_key]:
+                        query &= Q(
+                            **{filter["field"]: filter["value"]})
+                    compiler = self.model.objects.filter(
+                        query).query.get_compiler(
+                            connection=connection)
+                    qn = compiler.quote_name_unless_alias
+                    where_clause = self.model.objects.filter(
+                        query).query.where.as_sql(
+                            qn,
+                            connection
+                        )
+                    result[agg_key] = where_clause
+        return result
 
     def sql_create_function(self, table, column, aggregats, action):
         """
@@ -283,17 +372,28 @@ class AggTrigger(object):
         fname = function_name(table, column, action)
         tname = table_name(table, column)
         sql = None
-        if action == 'insert':
-            sql = self.backend.sql_create_function_insert(fname, table,
-                                                          column, tname)
-        elif action == 'update':
-            sql = self.backend.sql_create_function_update(fname, column,
-                                                          tname, action)
-        elif action == 'delete':
-            sql = self.backend.sql_create_function_delete(fname, column,
-                                                          tname, action)
-        else:
+        if action not in ["insert", "update", "delete"]:
             raise ActionUnknown(Exception)
+        meth = "sql_create_function_{}".format(action)
+        sql = []
+        for agg in aggregats:
+            if isinstance(agg, dict):
+                for agg_key, where_clause in self.extract_agg_where_clause(
+                        agg).iteritems():
+                    fname = function_name(table, column,
+                                          action, key=agg_key)
+                    sql.append(getattr(self.backend, meth)(
+                        fname, table,
+                        column, tname, action,
+                        where_clause=where_clause,
+                        agg_key=agg_key))
+            else:
+                fname = function_name(table, column,
+                                      action)
+                resp = getattr(self.backend, meth)(
+                    fname, table,
+                    column, tname, action)
+                sql.append(resp)
 
         return sql
 
@@ -309,8 +409,8 @@ class AggTrigger(object):
         """Return SQL Statements to DROP ALL triggers
         """
         sql = []
-        for action in ACTIONS:
-            tgname = trigger_name(self.table, self.column, action)
+        for function, action in self.functions.iteritems():
+            tgname = trigger_name(self.table, self.column, function, action)
             sql.append(self.sql_drop_trigger(tgname, self.table))
         return sql
 
@@ -351,6 +451,7 @@ class AggTrigger(object):
         """
         res = []
         qry = self.backend.sql_trigger_on_table_exists()
+
         for trig in self.triggers_name:
             params = (trig, self.table)
             res.append((trig, dbcommands.lookup(qry,
@@ -365,6 +466,7 @@ class AggTrigger(object):
 
         trganme : (string) trigger name
         """
+
         qry = self.backend.sql_trigger_on_table_exists()
         params = (trgname, self.table)
         res = dbcommands.lookup(qry, params=params, database=self.database)
@@ -375,7 +477,20 @@ class AggTrigger(object):
         """
         res = []
         qry = self.backend.sql_trigger_function_on_table_exists()
-        for func in self.functions_name:
+        functions = []
+        for agg in self.aggregats:
+            if isinstance(agg, dict):
+                for agg_key, where_clause in self.extract_agg_where_clause(
+                        agg).iteritems():
+                    for action in ["insert", "update", "delete"]:
+                        fname = function_name(self.table, self.column,
+                                              action, key=agg_key)
+                        functions.append(fname)
+            else:
+                for fname in self.functions_name:
+                    functions.append(fname)
+
+        for func in functions:
             params = (func[:-2], self.table)
             res.append((func, dbcommands.lookup(qry,
                                                 params=params,
