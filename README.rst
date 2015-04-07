@@ -95,3 +95,71 @@ as **foo_apple**, it will contain the aggregat::
      agg_min   | integer | 
     Indexes:
         "foo_apple__indice_agg_indice_idx" btree (indice)
+
+Aggregate on related table
+--------------------------
+
+If you need to maintain count on related objects, for example the
+comment count per Article, you can use ForeignKeyTriggerField::
+
+    from django_aggtrigg.models import ForeignKeyTriggerField
+
+Trade the ForeignKey on ArticleComment for a ForeignKeyTriggerField::
+
+    class ArticleComment(models.Model):
+        ...
+        article = ForeignKeyTriggerField(Article)
+        ...
+
+Add simple count::
+
+        article.aggregate_trigger = ["count"]
+
+Or complex one with some filters::
+
+        article.aggregate_trigger = {'count': [
+                                        {'private': [ {
+                                            "field": "is_private",
+                                            "value": False}
+                                                     ]
+                                         }
+                                               ]
+                                     }
+
+Create your triggers::
+
+    python manage.py aggtrigg_create
+
+Initialize your triggers::
+
+    python manage.py aggtrigg_initialize
+
+
+To use those triggers easily, you can use AggCount manager::
+
+    from django_aggtrigg.models import AggCount
+
+    ArticleManager = Manager.include(AggCount)
+
+AggCount give you a new method on your model: ``get_count``. You can
+use it juste like a traditional queryset method. ex::
+
+    Article.objects.filter(..).get_count().values("articlecomment_count_private")
+    [{'ticketcomment_count_private': 4},
+    {'ticketcomment_count_private': 2},..]
+
+    Article.objects.filter(..).get_count().first().__dict__
+    {'id': 24,
+     ...
+     'ticketcomment_count_private': 3
+     ...}
+
+The only thing you cannot do with get_count is filtering on the
+aggregates. ex::
+
+    Article.objects.get_count().filter(articlecomment_count_private__gte=3)
+    # THIS DOES NOT WORK !!!
+
+Because the aggregates are not on the table you working on, Django
+does not really know anything about this table. THis is the reason why
+you do not have to bother with migrations.
