@@ -18,6 +18,7 @@
 #
 from django.db import models
 from django.db import connection
+from djqmixin import QMixin
 import tool
 import util
 
@@ -51,34 +52,108 @@ class FloatTriggerField(TriggerFieldMixin, models.FloatField):
     description = "An FloatField with trigger"
 
 
-class AggTriggManager(models.Manager):
+class AggCount(QMixin):
 
-    def get_queryset(self):
+    def get_count(self):
         """Returns a new QuerySet object.  Subclasses can override this method
         to easily customize the behavior of the Manager.
         """
+        qs = self
+        # Introspection part, we want to know if some of the reverse
+        # relations of the models contains some TriggerFieldMixin
+        # pointing to the model we are working with.
 
-        qs = super(AggTriggManager, self).get_queryset()
-
-        for k, v in self.model.__dict__.iteritems():
+        for field in self.model.__dict__.itervalues():
             if isinstance(
-                    v,
+                    field,
                     models.fields.related.ForeignRelatedObjectsDescriptor):
-                if isinstance(v.related.field, ForeignKeyTriggerField):
+
+                # the model we are working with has a reverse relation
+
+                if isinstance(field.related.field, ForeignKeyTriggerField):
+                    # ForeignKeyTriggerField is the type of relation
+                    # we are looking for. We need to retreive the
+                    # table where the aggregates are lying
+
                     table = "{}__{}_agg".format(
-                        v.related.model._meta.db_table,
-                        v.related.field.attname)
-                    for agg in v.related.field.aggregate_trigger:
+                        field.related.model._meta.db_table,
+                        field.related.field.attname)
+                    # Now that we have the table, we need to retreive
+                    # the revelant fields name on this table to create
+                    # the extra(s) we need.
+                    #
+                    # There is 2 forms of aggregate.
+                    #
+                    # The simplest is a string: "count", "sum", "max"...
+                    #
+                    # The second is a dict we only need to digg into
+                    # the dict to retreive the type of aggregate
+                    # (count, max, sum etc...) and for each type, the
+                    # list of aggregate name
+                    for agg in field.related.field.aggregate_trigger:
                         select = {}
-                        param = "select {} from {} where {}={}.{}".format(
-                            "agg_{}".format(agg),
-                            table,
-                            v.related.field.attname,
-                            self.model._meta.db_table,
-                            self.model._meta.pk.name)
-                        select["{}_count".format(v.related.var_name)] = param
-                        qs = qs.extra(select=select)
+                        filters = []
+                        if isinstance(agg, dict):
+                            # {"count":
+                            #      [{"private":
+                            #           {"field":
+                            #              "somefield",
+                            #            "filters":
+                            #               "somefilters"},
+                            #      ...]
+                            for aggregate_type in agg.iterkeys():
+                                for agg_filter in agg[aggregate_type]:
+                                    for name in agg_filter:
+                                        filters.append(
+                                            "{}_{}".format(aggregate_type,
+                                                           name))
+                        else:
+                            filters = [agg]
+
+                        for filter in filters:
+                            # We have to construct the query to call
+                            # in the extra, a little more
+                            # introspection here
+                            #
+                            # - "agg_{}".format(filter) => the filter we
+                            #                              found earlier, with
+                            #                              a agg_ prepended to
+                            #                              avoid name clash
+                            #
+                            # - table : the table name found earlier
+                            #
+                            # - field.related.field.attname => the column name
+                            #                          of the relation to the
+                            #                          working models on the
+                            #                          reverse related model
+                            #                          (are you still with me?)
+                            #                          Working model is Article
+                            #                          ArticleComment has a
+                            #                          foreignkey to Article,
+                            #                          named "article", in the
+                            #                          database, the column is
+                            #                          article_id
+                            # - self.model._meta.db_table => the model table we
+                            #                                are working on
+                            # - self.model._meta.pk.name => the column name of
+                            #                               the working model
+                            #                               pk
+                            #
+                            param = "select {} from {} where {}={}.{}".format(
+                                "agg_{}".format(filter),
+                                table,
+                                field.related.field.attname,
+                                self.model._meta.db_table,
+                                self.model._meta.pk.name)
+                            # create the select and create an extra for it
+                            select["{}_{}".format(
+                                field.related.var_name, filter)] = param
+                            qs = qs.extra(select=select)
+        # finaly return the augmented queryset
         return qs
+
+
+class AggTriggManager(models.Manager):
 
     def optimized_count(self, **kwargs):
         """Return count in optimized manner
