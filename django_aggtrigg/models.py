@@ -18,6 +18,7 @@
 #
 from django.db import models
 from django.db import connection
+from djqmixin import QMixin
 import tool
 import util
 
@@ -51,14 +52,14 @@ class FloatTriggerField(TriggerFieldMixin, models.FloatField):
     description = "An FloatField with trigger"
 
 
-class AggTriggManager(models.Manager):
+class AggCount(QMixin):
 
-    def get_queryset(self):
+    def get_count(self):
         """Returns a new QuerySet object.  Subclasses can override this method
         to easily customize the behavior of the Manager.
         """
 
-        qs = super(AggTriggManager, self).get_queryset()
+        qs = self
 
         for k, v in self.model.__dict__.iteritems():
             if isinstance(
@@ -68,17 +69,33 @@ class AggTriggManager(models.Manager):
                     table = "{}__{}_agg".format(
                         v.related.model._meta.db_table,
                         v.related.field.attname)
+
                     for agg in v.related.field.aggregate_trigger:
                         select = {}
-                        param = "select {} from {} where {}={}.{}".format(
-                            "agg_{}".format(agg),
-                            table,
-                            v.related.field.attname,
-                            self.model._meta.db_table,
-                            self.model._meta.pk.name)
-                        select["{}_count".format(v.related.var_name)] = param
-                        qs = qs.extra(select=select)
+                        filters = []
+                        if isinstance(agg, dict):
+                            for key in agg.iterkeys():
+                                for agg_filter in agg[key]:
+                                    for title in agg_filter:
+                                        filters.append(
+                                            "{}_{}".format(key, title))
+                        else:
+                            filters = [agg]
+
+                        for filter in filters:
+                            param = "select {} from {} where {}={}.{}".format(
+                                "agg_{}".format(filter),
+                                table,
+                                v.related.field.attname,
+                                self.model._meta.db_table,
+                                self.model._meta.pk.name)
+                            select["{}_{}".format(
+                                v.related.var_name, filter)] = param
+                            qs = qs.extra(select=select)
         return qs
+
+
+class AggTriggManager(models.Manager):
 
     def optimized_count(self, **kwargs):
         """Return count in optimized manner
