@@ -88,11 +88,11 @@ as **foo_apple**, it will contain the aggregat::
 
     foo=# \d foo_apple__indice_agg
     Table "public.foo_apple__indice_agg"
-      Column   |  Type   | Modifiers 
+      Column   |  Type   | Modifiers
     -----------+---------+-----------
-     indice    | integer | 
-     agg_count | integer | 
-     agg_min   | integer | 
+     indice    | integer |
+     agg_count | integer |
+     agg_min   | integer |
     Indexes:
         "foo_apple__indice_agg_indice_idx" btree (indice)
 
@@ -117,14 +117,14 @@ Add simple count::
 
 Or complex one with some filters::
 
-        article.aggregate_trigger = {'count': [
+        article.aggregate_trigger = [{'count': [
                                         {'private': [ {
                                             "field": "is_private",
                                             "value": False}
                                                      ]
                                          }
                                                ]
-                                     }
+                                     }]
 
 Create your triggers::
 
