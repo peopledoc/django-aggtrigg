@@ -4,6 +4,13 @@ Changelog
 This document describes changes between each past release. For information
 about future releases, check `milestones`_ and :doc:`/about/vision`.
 
+0.7.0 (2015-04-09)
+------------------
+
+- Introduce ForeignKey management
+- Introduce filter counter
+- Add a manager for easy access to counter
+
 0.6.6 (2014-03-13)
 ------------------
 
