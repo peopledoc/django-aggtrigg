@@ -9,4 +9,4 @@ before_script:
 install:
   - pip install tox
 script:
-  - tox -e $TOX_ENV
+  - tox -e py27
