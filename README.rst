@@ -10,6 +10,7 @@ Automatic trigger generator for Django
     :target: https://pypi.python.org/pypi/django-aggtrigg
 
 .. image:: https://travis-ci.org/novafloss/django-aggtrigg.svg
+    :target: https://travis-ci.org/novafloss/django-aggtrigg
 
 Create triggers to do some aggregate and permit to count objects from
 database without using COUNT() aggregat.
