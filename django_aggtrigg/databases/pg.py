@@ -131,9 +131,11 @@ class TriggerPostgreSQL(object):
         env = Environment(loader=FileSystemLoader(tpl))
         template = env.get_template('pg_function_insert.sql')
         if agg_key is None:
+            action_key = "agg_count"
             actions = "agg_count=agg_count+1"
         else:
-            actions = "agg_count_{0}=agg_count_{0}+1".format(agg_key)
+            action_key = "agg_count_{0}".format(agg_key)
+        actions = "{0}={0}+1".format(action_key)
         insert_values = 1
         if where_clause:
             where_clause = parse_where_clause(where_clause, table, "NEW")
@@ -142,6 +144,7 @@ class TriggerPostgreSQL(object):
                               aggtable=aggtable,
                               column=column,
                               actions=actions,
+                              action_key=action_key,
                               insert_values=insert_values,
                               where_clause=where_clause)
         return tmp
@@ -162,7 +165,7 @@ class TriggerPostgreSQL(object):
         template = env.get_template('pg_function_delete.sql')
 
         if agg_key is None:
-            actions = "agg_count=agg_count+1"
+            actions = "agg_count=agg_count-1"
         else:
             actions = "agg_count_{0}=agg_count_{0}-1".format(agg_key)
 
@@ -192,11 +195,11 @@ class TriggerPostgreSQL(object):
 
         template = env.get_template('pg_function_update.sql')
         if agg_key is None:
-            actions_new = "agg_count=agg_count+1"
-            actions_old = "agg_count=agg_count-1"
+            action_key = "agg_count"
         else:
-            actions_new = "agg_count_{0}=agg_count_{0}+1".format(agg_key)
-            actions_old = "agg_count_{0}=agg_count_{0}-1".format(agg_key)
+            action_key = "agg_count_{0}".format(agg_key)
+        actions_new = "{0}={0}+1".format(action_key)
+        actions_old = "{0}={0}-1".format(action_key)
 
         if where_clause:
             old_where_clause = parse_where_clause(where_clause, table, "OLD")
@@ -209,6 +212,7 @@ class TriggerPostgreSQL(object):
                                column=column,
                                actions_old=actions_old,
                                actions_new=actions_new,
+                               action_key=action_key,
                                where_clause=where_clause,
                                old_where_clause=old_where_clause)
         return temp
