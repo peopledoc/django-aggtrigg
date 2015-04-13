@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION {{name}} RETURNS TRIGGER AS $BODY$
 BEGIN
+
 {% if where_clause %}
 IF NEW.{{column}} != OLD.{{column}} THEN
     IF {{where_clause}} THEN
@@ -7,7 +8,7 @@ IF NEW.{{column}} != OLD.{{column}} THEN
           UPDATE {{table}} SET {{actions_new}} WHERE {{column}}=NEW.{{column}};
        ELSE
        -- else insert a new line
-          INSERT INTO {{table}} VALUES ( NEW.{{column}}, 1 );
+          INSERT INTO {{table}} ({{column}}, {{action_key}}) VALUES ( NEW.{{column}}, 1 );
        END IF;
    END IF;
    IF {{old_where_clause}} THEN
