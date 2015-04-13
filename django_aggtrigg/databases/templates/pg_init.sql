@@ -10,7 +10,7 @@ WITH {% for agg in aggregats %}{{aggregats[agg]["column"]}}
 
 INSERT INTO {{aggtable}} ({{column}}, {% for agg in aggregats %}{{aggregats[agg]["column"]}} {% if not loop.last %},{% endif %} {% endfor %}) (SELECT {{table}}.{{column}},
        {% for agg in aggregats %}
-          {{aggregats[agg]["column"]}}.count {% if not loop.last %},{% endif %}
+          COALESCE({{aggregats[agg]["column"]}}.count, 0) {% if not loop.last %},{% endif %}
        {% endfor %}  FROM {{table}}
        {% for agg in aggregats %}
            LEFT OUTER JOIN
