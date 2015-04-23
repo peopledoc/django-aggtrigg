@@ -30,6 +30,8 @@ class Tree(models.Model):
 class Leave(models.Model):
     name = models.CharField(max_length=300)
     tree = ForeignKeyTriggerField(Tree)
+    private = models.BooleanField()
     tree.aggregate_trigger = [
-        {"count": [{"leaves": [{"field": "name", "value": "'leave'"}]}]},
+        {"count": [
+            {"private_leaves": [{"field": "private", "value": False}]}]},
         "count"]
