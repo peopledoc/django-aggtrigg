@@ -30,4 +30,6 @@ class Tree(models.Model):
 class Leave(models.Model):
     name = models.CharField(max_length=300)
     tree = ForeignKeyTriggerField(Tree)
-    tree.aggregate_trigger = ["count"]
+    tree.aggregate_trigger = [
+        {"count": [{"leaves": [{"field": "name", "value": "'leave'"}]}]},
+        "count"]
