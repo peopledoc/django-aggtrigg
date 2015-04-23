@@ -66,8 +66,8 @@ class Command(BaseCommand):
         agg = util.AggTrigger(engine, table, column, aggs, model=model)
 
         for sqltrig in agg.sql_drop_triggers():
-            sys.stdout.write("%s;\n" % (sqltrig))
+            self.stdout.write("%s;\n" % (sqltrig))
 
         for sqlfunc in agg.sql_drop_functions():
-            sys.stdout.write("%s;\n" % (sqlfunc))
-        sys.stdout.write("%s;\n" % (agg.sql_drop_table()))
+            self.stdout.write("%s;\n" % (sqlfunc))
+        self.stdout.write("%s;\n" % (agg.sql_drop_table()))

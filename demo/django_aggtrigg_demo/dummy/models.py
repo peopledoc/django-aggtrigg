@@ -1,7 +1,11 @@
 from django.db import models
 from django_aggtrigg.models import IntegerTriggerField
 from django_aggtrigg.models import FloatTriggerField
-from django_aggtrigg.models import AggTriggManager
+from django_aggtrigg.models import ForeignKeyTriggerField
+from django_aggtrigg.models import AggCount, AggTriggManager
+from djqmixin import Manager
+
+TreeManager = Manager.include(AggCount)
 
 
 class Apple(models.Model):
@@ -16,3 +20,14 @@ class Apple(models.Model):
     indice.aggregate_trigger = ['count', 'min']
 
     objects = AggTriggManager()
+
+
+class Tree(models.Model):
+    name = models.CharField(max_length=300)
+    objects = TreeManager()
+
+
+class Leave(models.Model):
+    name = models.CharField(max_length=300)
+    tree = ForeignKeyTriggerField(Tree)
+    tree.aggregate_trigger = ["count"]
