@@ -101,7 +101,6 @@ class TestDemo(Utils, AggTriggerTestMixin, TestCase):
         self.delete_triggers()
         self.create_objects()
         self.assertEqual(Tree.objects.get_count().first().leave_count, 10)
-        print Tree.objects.get_count().first().__dict__
         self.assertEqual(
             Tree.objects.get_count().first().leave_count_private_leaves,
             5)
