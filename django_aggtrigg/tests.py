@@ -98,6 +98,8 @@ class AggTriggerTestMixin(object):
 
     def setUp(self):
         self.mock_get_count()
+        super(AggTriggerTestMixin, self).setUp()
 
     def tearDown(self):
         self.unmock_get_count()
+        super(AggTriggerTestMixin, self).tearDown()

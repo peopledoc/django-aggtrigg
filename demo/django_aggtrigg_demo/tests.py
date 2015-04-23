@@ -104,3 +104,13 @@ class TestDemo(Utils, AggTriggerTestMixin, TestCase):
         self.assertEqual(
             Tree.objects.get_count().first().leave_count_private_leaves,
             5)
+
+
+class TestSetupAndTearDow(AggTriggerTestMixin, TestCase):
+
+    def setUp(self):
+        self.something = "something"
+        super(TestSetupAndTearDow, self).setUp()
+
+    def test_setup_is_not_overrided(self):
+        self.assertTrue(hasattr(self, "something"))
