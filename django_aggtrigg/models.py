@@ -139,7 +139,8 @@ class AggCount(QMixin):
                             #                               the working model
                             #                               pk
                             #
-                            param = "select {} from {} where {}={}.{}".format(
+                            param = """select COALESCE((select {}
+                            FROM {} WHERE {}={}.{}), 0)""".format(
                                 "agg_{}".format(filter),
                                 table,
                                 field.related.field.attname,
@@ -148,6 +149,7 @@ class AggCount(QMixin):
                             # create the select and create an extra for it
                             select["{}_{}".format(
                                 field.related.var_name, filter)] = param
+                            print select
                             qs = qs.extra(select=select)
         # finaly return the augmented queryset
         return qs
