@@ -139,7 +139,8 @@ class AggCount(QMixin):
                             #                               the working model
                             #                               pk
                             #
-                            param = "select {} from {} where {}={}.{}".format(
+                            param = """select COALESCE((select {}
+                            FROM {} WHERE {}={}.{}), 0)""".format(
                                 "agg_{}".format(filter),
                                 table,
                                 field.related.field.attname,
