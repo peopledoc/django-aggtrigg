@@ -200,5 +200,7 @@ try:
         [], ["^django_aggtrigg\.models\.IntegerTriggerField"])
     add_introspection_rules(
         [], ["^django_aggtrigg\.models\.FloatTriggerField"])
+    add_introspection_rules(
+        [], ["^django_aggtrigg\.models\.ForeignKeyTriggerField"])
 except ImportError:
     pass
