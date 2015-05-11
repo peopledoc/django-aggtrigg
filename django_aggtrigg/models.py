@@ -149,7 +149,6 @@ class AggCount(QMixin):
                             # create the select and create an extra for it
                             select["{}_{}".format(
                                 field.related.var_name, filter)] = param
-                            print select
                             qs = qs.extra(select=select)
         # finaly return the augmented queryset
         return qs
