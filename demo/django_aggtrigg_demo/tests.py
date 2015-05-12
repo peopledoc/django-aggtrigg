@@ -100,10 +100,10 @@ class TestDemo(Utils, AggTriggerTestMixin, TestCase):
         """
         self.delete_triggers()
         self.create_objects()
-        self.assertEqual(Tree.objects.get_count().first().leave_count, 10)
-        self.assertEqual(
-            Tree.objects.get_count().first().leave_count_private_leaves,
-            5)
+        tree = Tree.objects.get_count().first()
+        self.assertEqual(tree.leave_count, 10)
+        self.assertEqual(tree.leave_count_private_leaves, 5)
+        self.assertEquals(tree.leave_count_public_leaves, 5)
 
 
 class TestSetupAndTearDow(AggTriggerTestMixin, TestCase):
