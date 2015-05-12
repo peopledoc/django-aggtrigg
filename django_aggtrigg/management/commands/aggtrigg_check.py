@@ -71,25 +71,25 @@ class Command(BaseCommand):
                              "-- source: %s, column: %s, aggregats: %s"])
 
         if table and trig['field'] and len(aggs) > 0:
-            sys.stdout.write(comment % (trig['model'], table,
-                                        trig['field'], aggs))
+            self.stdout.write(comment % (trig['model'], table,
+                                         trig['field'], aggs))
             if agg.agg_table_ispresent():
                 msg = "OK table: %s is present\n" % (agg.table_name)
             else:
                 msg = "KO table: %s is absent\n" % (agg.table_name)
 
-            sys.stdout.write(msg)
+            self.stdout.write(msg)
 
             for trig in agg.triggers_on_table_are_present():
                 if trig[1]:
                     msg = "OK trigger: %s is present\n" % (trig[0])
                 else:
                     msg = "KO trigger: %s is absent\n" % (trig[0])
-                sys.stdout.write(msg)
+                self.stdout.write(msg)
 
             for func in agg.functions_are_present():
                 if func[1]:
                     msg = "OK function: %s is present\n" % (func[0])
                 else:
                     msg = "KO function: %s is absent\n" % (func[0])
-                sys.stdout.write(msg)
+                self.stdout.write(msg)

@@ -139,7 +139,8 @@ class AggCount(QMixin):
                             #                               the working model
                             #                               pk
                             #
-                            param = "select {} from {} where {}={}.{}".format(
+                            param = """select COALESCE((select {}
+                            FROM {} WHERE {}={}.{}), 0)""".format(
                                 "agg_{}".format(filter),
                                 table,
                                 field.related.field.attname,
@@ -200,5 +201,7 @@ try:
         [], ["^django_aggtrigg\.models\.IntegerTriggerField"])
     add_introspection_rules(
         [], ["^django_aggtrigg\.models\.FloatTriggerField"])
+    add_introspection_rules(
+        [], ["^django_aggtrigg\.models\.ForeignKeyTriggerField"])
 except ImportError:
     pass
