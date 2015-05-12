@@ -362,17 +362,19 @@ class AggTrigger(object):
                 # at this level we can create the queryset and
                 # extract the where clause
                 for agg_key in aggregation:
-                    # First we create a queryset with Q objects
-                    query = Q()
-                    for filter in aggregation[agg_key]:
-                        query &= extract_value_from_definition(filter)
+                    condition = aggregation[agg_key]
+                    if not isinstance(condition, Q):
+                        query = Q()
+                        for filter in aggregation[agg_key]:
+                            query &= extract_value_from_definition(filter)
+                        condition = query
 
                     compiler = self.model.objects.filter(
-                        query).query.get_compiler(
+                        condition).query.get_compiler(
                             connection=connection)
                     qn = compiler.quote_name_unless_alias
                     where_clause = self.model.objects.filter(
-                        query).query.where.as_sql(
+                        condition).query.where.as_sql(
                             qn,
                             connection
                         )
