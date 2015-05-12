@@ -29,6 +29,24 @@ SQLITE_BACKEND = 'django.db.backends.sqlite3'
 PG_BACKEND = 'django.db.backends.postgresql_psycopg2'
 
 
+def extract_value_from_definition(filters):
+    """
+    Values can be defined in two way, by list or by single value
+    (can be deprecated). This function extracts values and returned
+    a valid Q object for django filtering.
+    """
+    try:
+        values = list(filters['value'])
+    except TypeError:
+        return Q(**{filters['field']: filters['value']})
+
+    field = filters['field']
+    res = Q()
+    for value in values:
+        res |= Q(**{field: value})
+    return res
+
+
 class DatabaseNotSupported(Exception):
     pass
 
@@ -214,10 +232,9 @@ class AggTrigger(object):
                                 database=self.database)
         if parsefunc is None:
             return res
-        else:
-            return eval("self.backend.%s('%s', '%s')" % (parsefunc,
-                                                         res,
-                                                         self.column))
+
+        meth = getattr(self.backend, 'parsefunc')
+        return meth(res, self.column)
 
     def sql_init(self):
         """
@@ -348,8 +365,8 @@ class AggTrigger(object):
                     # First we create a queryset with Q objects
                     query = Q()
                     for filter in aggregation[agg_key]:
-                        query &= Q(
-                            **{filter["field"]: filter["value"]})
+                        query &= extract_value_from_definition(filter)
+
                     compiler = self.model.objects.filter(
                         query).query.get_compiler(
                             connection=connection)
