@@ -233,7 +233,7 @@ class AggTrigger(object):
         if parsefunc is None:
             return res
 
-        meth = getattr(self.backend, 'parsefunc')
+        meth = getattr(self.backend, parsefunc)
         return meth(res, self.column)
 
     def sql_init(self):
