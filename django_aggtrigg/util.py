@@ -35,15 +35,15 @@ def extract_value_from_definition(filters):
     (can be deprecated). This function extracts values and returned
     a valid Q object for django filtering.
     """
-    try:
-        values = list(filters['value'])
-    except TypeError:
-        return Q(**{filters['field']: filters['value']})
-
     field = filters['field']
-    res = Q()
-    for value in values:
-        res |= Q(**{field: value})
+    values = filters['value']
+
+    if type(filters['value']) in [list, tuple]:
+        res = Q()
+        for value in values:
+            res |= Q(**{field: value})
+    else:
+        res = Q(**{field: values})
     return res
 
 

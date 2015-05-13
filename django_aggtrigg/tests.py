@@ -55,10 +55,14 @@ def mocked_get_count(obj):
                             extra_name = "{}_{}_{}".format(model_name,
                                                            aggregate_type,
                                                            name)
-                            query = Q()
-                            for filter in agg_filter[name]:
-                                query &= Q(
-                                    **{filter["field"]: filter["value"]})
+                            if type(agg_filter[name]) in [list, tuple]:
+                                query = Q()
+                                for filter in agg_filter[name]:
+                                    query &= Q(
+                                        **{filter["field"]: filter["value"]})
+                            else:
+                                query = agg_filter[name]
+
                             compiler = model.objects.filter(
                                 query).query.get_compiler(
                                     connection=connection)
