@@ -358,7 +358,7 @@ class AggTrigger(object):
                         query).query.where.as_sql(
                             qn,
                             connection
-                        )
+                    )
                     result[agg_key] = where_clause
         return result
 

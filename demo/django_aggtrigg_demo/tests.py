@@ -23,6 +23,7 @@ class TestCommands(TestCase):
         call_command('aggtrigg_drop', stdout=out)
         out.seek(0)
 
+
 class Utils(object):
 
     def create_objects(self):
@@ -39,6 +40,7 @@ class Utils(object):
         cursor = connection.cursor()
         call_command('aggtrigg_drop', stdout=out)
         cursor.execute(out.getvalue())
+
 
 class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
 
