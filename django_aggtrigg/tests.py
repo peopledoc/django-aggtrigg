@@ -67,7 +67,7 @@ def mocked_get_count(obj):
                                 query).query.where.as_sql(
                                     qn,
                                     connection
-                                )
+                            )
                             qs = """select count(*) from "{}" WHERE {}={}.{}
                                     AND {}""".format(
                                 table,
