@@ -56,6 +56,8 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
         self.assertEqual(Tree.objects.get_count().first().leave_count, 10)
         self.assertEqual(
             Tree.objects.get_count().first().leave_count_private_leaves, 5)
+        self.assertEqual(
+            Tree.objects.get_count().first().leave_count_public_leaves, 5)
 
     def test_no_triggers(self):
         """
