@@ -49,7 +49,9 @@ def function_name(table, column, action, key=None):
 
 
 def trigger_name(table, column, function, action):
-    function = function.split("_")[-1][:-2]
+
+    function = function.split("_")[-2][:-2]
+
     tname = "{0}_{1}_{2}_{3}_trigger".format(table, column, function, action)
     return tname
 
@@ -394,7 +396,6 @@ class AggTrigger(object):
                     fname, table,
                     column, tname, action)
                 sql.append(resp)
-
         return sql
 
     def drop_triggers(self, name):

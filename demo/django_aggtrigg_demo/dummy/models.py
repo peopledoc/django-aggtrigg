@@ -33,5 +33,7 @@ class Leave(models.Model):
     private = models.BooleanField()
     tree.aggregate_trigger = [
         {"count": [
-            {"private_leaves": [{"field": "private", "value": False}]}]},
+            {"private_leaves": [{"field": "private", "value": True}]},
+            {"public_leaves": [{"field": "private", "value": False}]},
+        ]},
         "count"]
