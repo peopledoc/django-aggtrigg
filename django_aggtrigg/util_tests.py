@@ -40,7 +40,7 @@ class utilTests(unittest.TestCase):
                          util.function_name('foo', 'colfoo', 'insert'))
 
     def test_trigger_name(self):
-        self.assertEqual("foo_id_insert_insert_trigger",
+        self.assertEqual("foo_id__insert_trigger",
                          util.trigger_name('foo', 'id',
                                            'foo_id_insert()', 'insert'))
 
@@ -57,8 +57,7 @@ class utilTests(unittest.TestCase):
 
         tgnames = [tgn[0] for tgn in res]
         sqls = [tgn[1] for tgn in res]
-
-        self.assertIn("foota_foocol_insert_insert_trigger", tgnames)
+        self.assertIn("foota_foocol_fooc_insert_trigger", tgnames)
         self.assertEqual(sqls[0][:6], "CREATE")
 
     # def test_sql_create_function(self):
