@@ -52,9 +52,8 @@ class Command(BaseCommand):
                     type="string",
                     help="table name",
                     default="default"),
-        make_option("-q",
-                    "--quiet",
-                    dest="quiet",
+        make_option("--noinput",
+                    dest="noinput",
                     action="store_true",
                     default=False))
 
@@ -62,9 +61,6 @@ class Command(BaseCommand):
         """
         Handle action
         """
-        if options['quiet']:
-            options['verbosity'] = 0
-
         for trig in djutil.get_agg_fields():
             self.create_trigger(trig, options)
 
