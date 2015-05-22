@@ -10,18 +10,10 @@ from django_aggtrigg.tests import AggTriggerTestMixin
 class TestCommands(TestCase):
 
     def test_commands(self):
-        out = StringIO()
-        call_command('aggtrigg_create', stdout=out)
-        out.seek(0)
-        out = StringIO()
-        call_command('aggtrigg_initialize', quiet=True, stdout=out)
-        out.seek(0)
-        out = StringIO()
-        call_command('aggtrigg_check', stdout=out)
-        out.seek(0)
-        out = StringIO()
-        call_command('aggtrigg_drop', stdout=out)
-        out.seek(0)
+        call_command('aggtrigg_create', verbosity=0)
+        call_command('aggtrigg_initialize', verbosity=0, noinput=True)
+        call_command('aggtrigg_check', verbosity=0)
+        call_command('aggtrigg_drop', verbosity=0)
 
 
 class Utils(object):
@@ -45,8 +37,8 @@ class Utils(object):
 class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
 
     def test_real_triggers(self):
-        call_command('aggtrigg_create')
-        call_command('aggtrigg_initialize', quiet=True)
+        call_command('aggtrigg_create', verbosity=0)
+        call_command('aggtrigg_initialize', noinput=True, verbosity=0)
         self.create_objects()
         self.unmock_get_count()
         # assert triggers are correctly set AND they retrun a correct
@@ -67,7 +59,7 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
         cursor = connection.cursor()
         call_command('aggtrigg_drop', stdout=out)
         cursor.execute(out.getvalue())
-        call_command('aggtrigg_check')
+        call_command('aggtrigg_check', verbosity=0)
         out = StringIO()
         call_command('aggtrigg_check', stdout=out)
         for report in out.getvalue().split("\n"):
