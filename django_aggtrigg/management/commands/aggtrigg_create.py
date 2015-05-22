@@ -17,7 +17,6 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
-import sys
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from optparse import make_option
@@ -87,14 +86,14 @@ class Command(BaseCommand):
             if not options['simulate']:
                 agg.create_objects()
                 if options['verbosity'] > 0:
-                    sys.stdout.write(comment % (table, column, aggs))
-                    sys.stdout.write("Create table : %s\n" % (agg.table_name))
+                    self.stdout.write(comment % (table, column, aggs))
+                    self.stdout.write("Create table : %s\n" % agg.table_name)
 
             #  do nothing
             else:
-                sys.stdout.write("%s\n" % (agg.sql_create_table()))
+                self.stdout.write("%s\n" % agg.sql_create_table())
                 for sql in agg.sql_create_functions():
-                    sys.stdout.write(comment % (table, column, aggs))
-                    sys.stdout.write("%s\n" % (sql))
+                    self.stdout.write(comment % (table, column, aggs))
+                    self.stdout.write("%s\n" % sql)
                 for tgs in agg.sql_create_triggers():
-                    sys.stdout.write("%s\n" % (tgs[1]))
+                    self.stdout.write("%s\n" % tgs[1])
