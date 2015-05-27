@@ -22,6 +22,8 @@ from django.db.models import Q, Count
 from django_aggtrigg.models import ForeignKeyTriggerField
 from django_aggtrigg.models import AggCount
 from django.db.models import get_models
+from django import get_version
+from distutils.version import LooseVersion
 
 
 def mocked_get_count(obj):
@@ -62,7 +64,11 @@ def mocked_get_count(obj):
                             compiler = model.objects.filter(
                                 query).query.get_compiler(
                                     connection=connection)
-                            qn = compiler.quote_name_unless_alias
+                            if LooseVersion(
+                                    get_version()) < LooseVersion("1.7.0"):
+                                qn = compiler.quote_name_unless_alias
+                            else:
+                                qn = compiler
                             where_clause = model.objects.filter(
                                 query).query.where.as_sql(
                                     qn,
