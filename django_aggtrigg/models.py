@@ -77,7 +77,7 @@ class AggCount(QMixin):
                     # we are looking for. We need to retreive the
                     # table where the aggregates are lying
                     if LooseVersion(
-                            get_version()) < LooseVersion("1.7.0"):
+                            get_version()) < LooseVersion("1.8.0"):
                         attrname = field.related.model._meta.db_table
                     else:
                         attrname = field.related.related_model._meta.db_table
@@ -155,7 +155,7 @@ class AggCount(QMixin):
                                 self.model._meta.pk.name)
                             # create the select and create an extra for it
                             if LooseVersion(
-                                    get_version()) < LooseVersion("1.7.0"):
+                                    get_version()) < LooseVersion("1.8.0"):
                                 var_name = field.related.var_name
                             else:
                                 var_name = field.related.\
