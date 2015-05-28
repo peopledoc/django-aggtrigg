@@ -18,6 +18,8 @@
 #
 from django.db import models
 from django.db import connection
+from django import get_version
+from distutils.version import LooseVersion
 from djqmixin import QMixin
 import tool
 import util
@@ -74,9 +76,14 @@ class AggCount(QMixin):
                     # ForeignKeyTriggerField is the type of relation
                     # we are looking for. We need to retreive the
                     # table where the aggregates are lying
+                    if LooseVersion(
+                            get_version()) < LooseVersion("1.8.0"):
+                        attrname = field.related.model._meta.db_table
+                    else:
+                        attrname = field.related.related_model._meta.db_table
 
                     table = "{}__{}_agg".format(
-                        field.related.model._meta.db_table,
+                        attrname,
                         field.related.field.attname)
                     # Now that we have the table, we need to retreive
                     # the revelant fields name on this table to create
@@ -147,8 +154,15 @@ class AggCount(QMixin):
                                 self.model._meta.db_table,
                                 self.model._meta.pk.name)
                             # create the select and create an extra for it
+                            if LooseVersion(
+                                    get_version()) < LooseVersion("1.8.0"):
+                                var_name = field.related.var_name
+                            else:
+                                var_name = field.related.\
+                                    related_model._meta.model_name
+
                             select["{}_{}".format(
-                                field.related.var_name, filter)] = param
+                                var_name, filter)] = param
                             qs = qs.extra(select=select)
         # finaly return the augmented queryset
         return qs
