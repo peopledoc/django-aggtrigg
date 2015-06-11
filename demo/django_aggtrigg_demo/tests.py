@@ -1,6 +1,5 @@
 from StringIO import StringIO
 from django.test import TestCase
-from django.db import ProgrammingError
 from django.core.management import call_command
 from dummy.models import Tree, Leave
 from django.db import connection
@@ -40,7 +39,6 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
         call_command('aggtrigg_create', verbosity=0)
         call_command('aggtrigg_initialize', noinput=True, verbosity=0)
         self.create_objects()
-        self.unmock_get_count()
         # assert triggers are correctly set AND they retrun a correct
         # result (see TestUtils.create_objects to get why we have 10
         # leaves)
@@ -66,13 +64,6 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
             self.assertFalse(
                 report.startswith("OK")
             )
-
-    def test_no_trigger_raises(self):
-        self.delete_triggers()
-        self.create_objects()
-        self.unmock_get_count()
-        with self.assertRaises(ProgrammingError):
-            Tree.objects.get_count().first()
 
     def test_mocked_triggers_do_not_raises(self):
         self.mock_get_count()
