@@ -20,7 +20,6 @@ from tool_tests import toolTests  # noqa
 from django.db import connection, models
 from django.db.models import Q, Count
 from django_aggtrigg.models import ForeignKeyTriggerField
-from django_aggtrigg.models import AggCount
 from django.db.models import get_models
 from django import get_version
 from distutils.version import LooseVersion
@@ -90,22 +89,19 @@ def mocked_get_count(obj):
 
 class AggTriggerTestMixin(object):
     def mock_get_count(self):
-        for model in get_models():
-            if hasattr(model.objects, "QuerySet"):
-                if hasattr(model.objects.QuerySet, "get_count"):
-                    model.objects.QuerySet.get_count = mocked_get_count
 
-    def unmock_get_count(self):
         for model in get_models():
-            if hasattr(model.objects, "QuerySet"):
-                if hasattr(model.objects.QuerySet, "get_count"):
-                    model.objects.include(AggCount)
-                    model.objects.QuerySet.get_count = AggCount['get_count']
+            if LooseVersion(
+                    get_version()) > LooseVersion("1.7.0"):
+                if hasattr(model.objects, "_queryset_class"):
+                    if hasattr(model.objects._queryset_class, "get_count"):
+                        model._old_objects = model.objects
+                        model.objects._queryset_class.get_count = mocked_get_count  # noqa
+            else:
+                if hasattr(model.objects, "QuerySet"):
+                    if hasattr(model.objects.QuerySet, "get_count"):
+                        model.objects.QuerySet.get_count = mocked_get_count
 
     def setUp(self):
         self.mock_get_count()
         super(AggTriggerTestMixin, self).setUp()
-
-    def tearDown(self):
-        self.unmock_get_count()
-        super(AggTriggerTestMixin, self).tearDown()
