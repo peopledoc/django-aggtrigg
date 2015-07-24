@@ -3,15 +3,9 @@ from django_aggtrigg.models import IntegerTriggerField
 from django_aggtrigg.models import FloatTriggerField
 from django_aggtrigg.models import ForeignKeyTriggerField
 from django_aggtrigg.models import AggCount, AggTriggManager
-from django import get_version
-from distutils.version import LooseVersion
-from djqmixin import Manager
 
-if LooseVersion(
-            get_version()) < LooseVersion("1.7.0"):
-    TreeManager = Manager.include(AggCount)
-else:
-    TreeManager = AggCount.as_manager
+
+TreeManager = AggCount.as_manager
 
 
 class Apple(models.Model):

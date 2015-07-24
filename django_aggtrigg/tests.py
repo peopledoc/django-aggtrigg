@@ -21,8 +21,6 @@ from django.db import connection, models
 from django.db.models import Q, Count
 from django_aggtrigg.models import ForeignKeyTriggerField
 from django.db.models import get_models
-from django import get_version
-from distutils.version import LooseVersion
 
 
 def mocked_get_count(obj):
@@ -63,11 +61,7 @@ def mocked_get_count(obj):
                             compiler = model.objects.filter(
                                 query).query.get_compiler(
                                     connection=connection)
-                            if LooseVersion(
-                                    get_version()) < LooseVersion("1.7.0"):
-                                qn = compiler.quote_name_unless_alias
-                            else:
-                                qn = compiler
+                            qn = compiler
                             where_clause = model.objects.filter(
                                 query).query.where.as_sql(
                                     qn,
@@ -91,16 +85,10 @@ class AggTriggerTestMixin(object):
     def mock_get_count(self):
 
         for model in get_models():
-            if LooseVersion(
-                    get_version()) > LooseVersion("1.7.0"):
-                if hasattr(model.objects, "_queryset_class"):
-                    if hasattr(model.objects._queryset_class, "get_count"):
-                        model._old_objects = model.objects
-                        model.objects._queryset_class.get_count = mocked_get_count  # noqa
-            else:
-                if hasattr(model.objects, "QuerySet"):
-                    if hasattr(model.objects.QuerySet, "get_count"):
-                        model.objects.QuerySet.get_count = mocked_get_count
+            if hasattr(model.objects, "_queryset_class"):
+                if hasattr(model.objects._queryset_class, "get_count"):
+                    model._old_objects = model.objects
+                    model.objects._queryset_class.get_count = mocked_get_count
 
     def setUp(self):
         self.mock_get_count()

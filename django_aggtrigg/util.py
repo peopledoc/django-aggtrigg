@@ -18,8 +18,6 @@
 #
 import six
 from django.db.models import Q
-from django import get_version
-from distutils.version import LooseVersion
 from django.db import connections
 import dbcommands
 import sys
@@ -357,10 +355,7 @@ class AggTrigger(object):
                     compiler = self.model.objects.filter(
                         query).query.get_compiler(
                             connection=connection)
-                    if LooseVersion(get_version()) < LooseVersion("1.7.0"):
-                        qn = compiler.quote_name_unless_alias
-                    else:
-                        qn = compiler
+                    qn = compiler
                     where_clause = self.model.objects.filter(
                         query).query.where.as_sql(
                             qn,
