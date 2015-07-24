@@ -45,8 +45,7 @@ REQUIREMENTS = [
     'setuptools',
     'psycopg2',
     'jinja2',
-    'six',
-    'django-qmixin'
+    'six'
 ]
 ENTRY_POINTS = {}
 CMDCLASS = {}
