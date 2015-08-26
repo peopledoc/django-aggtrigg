@@ -49,10 +49,9 @@ def function_name(table, column, action, key=None):
 
 
 def trigger_name(table, column, function, action):
+    function = function[:-2]
 
-    function = function.split("_")[-2][:-2]
-
-    tname = "{0}_{1}_{2}_{3}_trigger".format(table, column, function, action)
+    tname = "{0}_trigger".format(function)
     return tname
 
 
@@ -60,9 +59,8 @@ def triggers_name(table, column, functions):
     tgs = []
 
     for function, action in functions.iteritems():
-        function = function.split("_")[-1][:-2]
-        tgs.append("{0}_{1}_{2}_{3}_trigger".format(table, column,
-                                                    function, action))
+        function = function[:-2]
+        tgs.append("{0}_trigger".format(function))
     return tgs
 
 
