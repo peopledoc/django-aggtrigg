@@ -151,6 +151,8 @@ LOGGING = {
     }
 }
 
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 try:
     from settings_local import *  # noqa
 except ImportError:
