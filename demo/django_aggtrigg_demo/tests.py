@@ -14,6 +14,13 @@ class TestCommands(TestCase):
         call_command('aggtrigg_check', verbosity=0)
         call_command('aggtrigg_drop', verbosity=0)
 
+        out = StringIO()
+        call_command('aggtrigg_check', stdout=out)
+        for report in out.getvalue().split("\n"):
+            self.assertFalse(
+                report.startswith("KO")
+            )
+
 
 class Utils(object):
 
