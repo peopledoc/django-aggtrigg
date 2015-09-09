@@ -18,7 +18,8 @@
 #
 from django.db import models
 from django.db import connection
-from djqmixin import QMixin
+from django import get_version
+from distutils.version import LooseVersion
 import tool
 import util
 
@@ -52,11 +53,11 @@ class FloatTriggerField(TriggerFieldMixin, models.FloatField):
     description = "An FloatField with trigger"
 
 
-class AggCount(QMixin):
+class AggCount(models.QuerySet):
 
     def get_count(self):
-        """Returns a new QuerySet object.  Subclasses can override this method
-        to easily customize the behavior of the Manager.
+        """
+        add get_count to the queryset to merge trigger with objects
         """
         qs = self
         # Introspection part, we want to know if some of the reverse
@@ -74,9 +75,13 @@ class AggCount(QMixin):
                     # ForeignKeyTriggerField is the type of relation
                     # we are looking for. We need to retreive the
                     # table where the aggregates are lying
-
+                    if LooseVersion(
+                            get_version()) < LooseVersion("1.8.0"):
+                        attrname = field.related.model._meta.db_table
+                    else:
+                        attrname = field.related.related_model._meta.db_table  # noqa
                     table = "{}__{}_agg".format(
-                        field.related.model._meta.db_table,
+                        attrname,
                         field.related.field.attname)
                     # Now that we have the table, we need to retreive
                     # the revelant fields name on this table to create
@@ -109,36 +114,36 @@ class AggCount(QMixin):
                                                            name))
                         else:
                             filters = [agg]
+                        # We have to construct the query to call
+                        # in the extra, a little more
+                        # introspection here
+                        #
+                        # - "agg_{}".format(filter) => the filter we
+                        #                              found earlier, with
+                        #                              a agg_ prepended to
+                        #                              avoid name clash
+                        #
+                        # - table : the table name found earlier
+                        #
+                        # - field.related.field.attname => the column name
+                        #                          of the relation to the
+                        #                          working models on the
+                        #                          reverse related model
+                        #                          (are you still with me?)
+                        #                          Working model is Article
+                        #                          ArticleComment has a
+                        #                          foreignkey to Article,
+                        #                          named "article", in the
+                        #                          database, the column is
+                        #                          article_id
+                        # - self.model._meta.db_table => the model table we
+                        #                                are working on
+                        # - self.model._meta.pk.name => the column name of
+                        #                               the working model
+                        #                               pk
+                        #
 
                         for filter in filters:
-                            # We have to construct the query to call
-                            # in the extra, a little more
-                            # introspection here
-                            #
-                            # - "agg_{}".format(filter) => the filter we
-                            #                              found earlier, with
-                            #                              a agg_ prepended to
-                            #                              avoid name clash
-                            #
-                            # - table : the table name found earlier
-                            #
-                            # - field.related.field.attname => the column name
-                            #                          of the relation to the
-                            #                          working models on the
-                            #                          reverse related model
-                            #                          (are you still with me?)
-                            #                          Working model is Article
-                            #                          ArticleComment has a
-                            #                          foreignkey to Article,
-                            #                          named "article", in the
-                            #                          database, the column is
-                            #                          article_id
-                            # - self.model._meta.db_table => the model table we
-                            #                                are working on
-                            # - self.model._meta.pk.name => the column name of
-                            #                               the working model
-                            #                               pk
-                            #
                             param = """select COALESCE((select {}
                             FROM {} WHERE {}={}.{}), 0)""".format(
                                 "agg_{}".format(filter),
@@ -147,9 +152,17 @@ class AggCount(QMixin):
                                 self.model._meta.db_table,
                                 self.model._meta.pk.name)
                             # create the select and create an extra for it
+                            if LooseVersion(
+                                    get_version()) < LooseVersion("1.8.0"):
+                                var_name = field.related.var_name
+                            else:
+                                var_name = field.related.\
+                                    related_model._meta.model_name
+
                             select["{}_{}".format(
-                                field.related.var_name, filter)] = param
+                                var_name, filter)] = param
                             qs = qs.extra(select=select)
+
         # finaly return the augmented queryset
         return qs
 

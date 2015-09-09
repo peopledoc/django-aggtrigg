@@ -67,8 +67,7 @@ def function_name(table, column, action, key=None):
 
 
 def trigger_name(table, column, function, action):
-    function = function.split("_")[-1][:-2]
-    tname = "{0}_{1}_{2}_{3}_trigger".format(table, column, function, action)
+    tname = "{0}_trigger".format(function[:-2])
     return tname
 
 
@@ -76,9 +75,7 @@ def triggers_name(table, column, functions):
     tgs = []
 
     for function, action in functions.iteritems():
-        function = function.split("_")[-1][:-2]
-        tgs.append("{0}_{1}_{2}_{3}_trigger".format(table, column,
-                                                    function, action))
+        tgs.append("{0}_trigger".format(function[:-2]))
     return tgs
 
 
@@ -372,12 +369,12 @@ class AggTrigger(object):
                     compiler = self.model.objects.filter(
                         condition).query.get_compiler(
                             connection=connection)
-                    qn = compiler.quote_name_unless_alias
+                    qn = compiler
                     where_clause = self.model.objects.filter(
                         condition).query.where.as_sql(
                             qn,
                             connection
-                        )
+                    )
                     result[agg_key] = where_clause
         return result
 
@@ -413,7 +410,6 @@ class AggTrigger(object):
                     fname, table,
                     column, tname, action)
                 sql.append(resp)
-
         return sql
 
     def drop_triggers(self, name):

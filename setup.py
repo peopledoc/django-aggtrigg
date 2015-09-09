@@ -41,12 +41,11 @@ KEYWORDS = [
 PACKAGES = ['django_aggtrigg']
 
 REQUIREMENTS = [
-    'Django<1.7',
+    'Django',
     'setuptools',
     'psycopg2',
     'jinja2',
-    'six',
-    'django-qmixin'
+    'six'
 ]
 ENTRY_POINTS = {}
 CMDCLASS = {}

@@ -1,6 +1,5 @@
 from StringIO import StringIO
 from django.test import TestCase
-from django.db import ProgrammingError
 from django.core.management import call_command
 from dummy.models import Tree, Leave
 from django.db import connection
@@ -10,18 +9,18 @@ from django_aggtrigg.tests import AggTriggerTestMixin
 class TestCommands(TestCase):
 
     def test_commands(self):
-        out = StringIO()
-        call_command('aggtrigg_create', stdout=out)
-        out.seek(0)
-        out = StringIO()
-        call_command('aggtrigg_initialize', quiet=True, stdout=out)
-        out.seek(0)
+        call_command('aggtrigg_create', verbosity=0)
+        call_command('aggtrigg_initialize', verbosity=0, noinput=True)
+        call_command('aggtrigg_check', verbosity=0)
+        call_command('aggtrigg_drop', verbosity=0)
+
         out = StringIO()
         call_command('aggtrigg_check', stdout=out)
-        out.seek(0)
-        out = StringIO()
-        call_command('aggtrigg_drop', stdout=out)
-        out.seek(0)
+        for report in out.getvalue().split("\n"):
+            self.assertFalse(
+                report.startswith("KO")
+            )
+
 
 class Utils(object):
 
@@ -40,13 +39,13 @@ class Utils(object):
         call_command('aggtrigg_drop', stdout=out)
         cursor.execute(out.getvalue())
 
+
 class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
 
     def test_real_triggers(self):
-        call_command('aggtrigg_create')
-        call_command('aggtrigg_initialize', quiet=True)
+        call_command('aggtrigg_create', verbosity=0)
+        call_command('aggtrigg_initialize', noinput=True, verbosity=0)
         self.create_objects()
-        self.unmock_get_count()
         # assert triggers are correctly set AND they retrun a correct
         # result (see TestUtils.create_objects to get why we have 10
         # leaves)
@@ -54,6 +53,8 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
         self.assertEqual(Tree.objects.get_count().first().leave_count, 10)
         self.assertEqual(
             Tree.objects.get_count().first().leave_count_private_leaves, 5)
+        self.assertEqual(
+            Tree.objects.get_count().first().leave_count_public_leaves, 5)
 
     def test_no_triggers(self):
         """
@@ -63,20 +64,13 @@ class TestMockingTrigger(Utils, AggTriggerTestMixin, TestCase):
         cursor = connection.cursor()
         call_command('aggtrigg_drop', stdout=out)
         cursor.execute(out.getvalue())
-        call_command('aggtrigg_check')
+        call_command('aggtrigg_check', verbosity=0)
         out = StringIO()
         call_command('aggtrigg_check', stdout=out)
         for report in out.getvalue().split("\n"):
             self.assertFalse(
                 report.startswith("OK")
             )
-
-    def test_no_trigger_raises(self):
-        self.delete_triggers()
-        self.create_objects()
-        self.unmock_get_count()
-        with self.assertRaises(ProgrammingError):
-            Tree.objects.get_count().first()
 
     def test_mocked_triggers_do_not_raises(self):
         self.mock_get_count()

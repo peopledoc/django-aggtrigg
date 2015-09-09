@@ -4,10 +4,28 @@ Changelog
 This document describes changes between each past release. For information
 about future releases, check `milestones`_ and :doc:`/about/vision`.
 
-0.7.4 (unreleased)
+1.1.1 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+1.1.0 (2015-07-24)
+------------------
+
+- Remove qmixin from requirments. Drop support of django 1.6
+
+
+1.0.1 (2015-06-12)
+------------------
+
+- Remove QMixin for django 1.7 and higer
+
+
+1.0.0 (2015-05-28)
+------------------
+
+- Add compatibility for Django 1.7 and Django 1.8
 
 
 0.7.3 (2015-05-12)

@@ -34,9 +34,8 @@ class Command(BaseCommand):
                     type="string",
                     help="table name",
                     default="default"),
-        make_option("-q",
-                    "--quiet",
-                    dest="quiet",
+        make_option("--noinput",
+                    dest="noinput",
                     action="store_true",
                     default=False)
     )
@@ -70,7 +69,7 @@ class Command(BaseCommand):
                              u"%s contains %s tuples approximatively,",
                              u"maybe long : [y/N] (please type yes to do)\n"])
 
-        if options.get("quiet"):
+        if options.get("noinput", False):
             answer = "yes"
         else:
             if sys.version_info.major == 2:
@@ -79,8 +78,11 @@ class Command(BaseCommand):
                                       trig['table'],
                                       agg.get_nb_tuples()))
         if answer == "yes":
-            sys.stdout.write(" Initialize %s ...\n" % (agg.table_name))
+            if agg.verbose:
+                self.stdout.write(" Initialize %s ...\n" % agg.table_name)
             agg.initialize()
-            sys.stdout.write(" done, %s is initialized\n" % (agg.table_name))
+            if agg.verbose:
+                self.stdout.write(
+                    " done, %s is initialized\n" % agg.table_name)
         else:
             return

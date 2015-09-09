@@ -73,6 +73,14 @@ environment:
 
 See also ``make help``.
 
+****************
+Test environment
+****************
+
+To get your test environment ready, you'll need at least an access to a 9.x
+postgresql server. You may want to provide credentials, by editing the
+`settings_local.sample.py` file and save it as `settings_local.py`
+in the demo directory.
 
 .. rubric:: Notes & references
 

@@ -20,7 +20,6 @@ from tool_tests import toolTests  # noqa
 from django.db import connection, models
 from django.db.models import Q, Count
 from django_aggtrigg.models import ForeignKeyTriggerField
-from django_aggtrigg.models import AggCount
 from django.db.models import get_models
 
 
@@ -66,12 +65,12 @@ def mocked_get_count(obj):
                             compiler = model.objects.filter(
                                 query).query.get_compiler(
                                     connection=connection)
-                            qn = compiler.quote_name_unless_alias
+                            qn = compiler
                             where_clause = model.objects.filter(
                                 query).query.where.as_sql(
                                     qn,
                                     connection
-                                )
+                            )
                             qs = """select count(*) from "{}" WHERE {}={}.{}
                                     AND {}""".format(
                                 table,
@@ -88,22 +87,13 @@ def mocked_get_count(obj):
 
 class AggTriggerTestMixin(object):
     def mock_get_count(self):
-        for model in get_models():
-            if hasattr(model.objects, "QuerySet"):
-                if hasattr(model.objects.QuerySet, "get_count"):
-                    model.objects.QuerySet.get_count = mocked_get_count
 
-    def unmock_get_count(self):
         for model in get_models():
-            if hasattr(model.objects, "QuerySet"):
-                if hasattr(model.objects.QuerySet, "get_count"):
-                    model.objects.include(AggCount)
-                    model.objects.QuerySet.get_count = AggCount['get_count']
+            if hasattr(model.objects, "_queryset_class"):
+                if hasattr(model.objects._queryset_class, "get_count"):
+                    model._old_objects = model.objects
+                    model.objects._queryset_class.get_count = mocked_get_count
 
     def setUp(self):
         self.mock_get_count()
         super(AggTriggerTestMixin, self).setUp()
-
-    def tearDown(self):
-        self.unmock_get_count()
-        super(AggTriggerTestMixin, self).tearDown()

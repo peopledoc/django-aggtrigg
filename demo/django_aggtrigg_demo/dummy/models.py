@@ -3,9 +3,9 @@ from django_aggtrigg.models import IntegerTriggerField
 from django_aggtrigg.models import FloatTriggerField
 from django_aggtrigg.models import ForeignKeyTriggerField
 from django_aggtrigg.models import AggCount, AggTriggManager
-from djqmixin import Manager
 
-TreeManager = Manager.include(AggCount)
+
+TreeManager = AggCount.as_manager
 
 
 class Apple(models.Model):
@@ -30,7 +30,7 @@ class Tree(models.Model):
 class Leave(models.Model):
     name = models.CharField(max_length=300)
     tree = ForeignKeyTriggerField(Tree)
-    private = models.BooleanField()
+    private = models.BooleanField(default=False)
     tree.aggregate_trigger = [
         {"count": [{
             "private_leaves": [{"field": "private", "value": False}],

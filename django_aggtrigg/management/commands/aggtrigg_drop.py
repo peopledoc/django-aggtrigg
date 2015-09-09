@@ -17,7 +17,6 @@
 #   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
 #
-import sys
 from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -62,12 +61,18 @@ class Command(BaseCommand):
         table = trig['table']
 
         engine = settings.DATABASES[options['database']]['ENGINE']
+        verbosity = options.get('verbosity', 0)
 
         agg = util.AggTrigger(engine, table, column, aggs, model=model)
 
         for sqltrig in agg.sql_drop_triggers():
-            self.stdout.write("%s;\n" % (sqltrig))
+            if verbosity:
+                self.stdout.write("%s;\n" % sqltrig)
 
         for sqlfunc in agg.sql_drop_functions():
-            self.stdout.write("%s;\n" % (sqlfunc))
-        self.stdout.write("%s;\n" % (agg.sql_drop_table()))
+            if verbosity:
+                self.stdout.write("%s;\n" % sqlfunc)
+
+        drop_result = agg.sql_drop_table()
+        if verbosity:
+            self.stdout.write("%s;\n" % drop_result)
